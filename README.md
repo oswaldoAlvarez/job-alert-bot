@@ -328,6 +328,7 @@ EMAIL_FROM
 EMAIL_TO
 OPENAI_API_KEY
 MOM_EMAIL_TO
+MOM_CV_TEXT
 ```
 
 Valores tipicos para Gmail:
@@ -342,6 +343,7 @@ EMAIL_FROM = tu-email@gmail.com
 EMAIL_TO = destino@gmail.com
 OPENAI_API_KEY = sk-...
 MOM_EMAIL_TO = correo-de-tu-mama@gmail.com
+MOM_CV_TEXT = Yuly Maribel Delgado Rodriguez. Licenciada en Enfermeria...
 ```
 
 Secret opcional para buscar tambien en Google Jobs, LinkedIn, Indeed y job boards de empresas via SerpApi:
@@ -374,8 +376,10 @@ ENABLE_MOM_NURSING_PROFILE
 MOM_PROFILE_NAME
 MOM_SUBJECT_PREFIX
 MOM_LOCATION
+MOM_MIN_COMPATIBILITY_SCORE
 MOM_LOOKBACK_DAYS
 MOM_MAX_JOBS_PER_EMAIL
+MOM_AI_MAX_CANDIDATES
 MOM_SERPAPI_RUN_EVERY_HOURS
 MOM_SERPAPI_MAX_QUERIES_PER_RUN
 MOM_SERPAPI_QUERIES
@@ -385,7 +389,7 @@ Si no configuras estas variables opcionales, el workflow usa valores por defecto
 
 ### Perfil Opcional: Enfermeria Caracas
 
-Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil no usa IA ni CV: toma las ofertas que SerpApi/Google Jobs devuelve para las busquedas de enfermeria en Caracas, las deduplica y las envia al correo configurado. El criterio de calidad queda en las queries de busqueda.
+Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
 
 Este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo si quieres que busque esas ofertas.
 

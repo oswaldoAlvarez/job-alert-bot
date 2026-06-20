@@ -5,6 +5,8 @@ import { fetchCvText } from "../services/cv.js";
 import { renderHtmlDigest, renderTextDigest } from "../services/digest.js";
 import { sendEmail } from "../services/email.js";
 import { filterFreshJobsByLandingPage } from "../services/freshness.js";
+import { enrichJobsWithLandingPage } from "../services/jobDetails.js";
+import { filterNursingCriticalExclusions } from "../services/nursingFilters.js";
 import { keepUnseenJobs, markJobsAsSeen } from "../services/state.js";
 import type { JobProfile, MatchedJob } from "../types.js";
 import { preselectJobCandidates } from "./preselectJobs.js";
@@ -25,55 +27,22 @@ const resolveCvText = async (profile: JobProfile): Promise<string> => {
   throw new Error(`El perfil ${profile.name} requiere cvText o cvUrl para usar IA`);
 };
 
-const shouldSendRawSourceJobs = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
+const isMomNursingProfile = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
 
 const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
-  if (shouldSendRawSourceJobs(profile)) {
-    const sourceJobs = rankJobs(
-      dedupeJobs(allJobs).map((job) => ({
-        ...job,
-        score: 1,
-        reasons: ["Oferta recibida desde Google Jobs/SerpApi para busqueda de enfermeria en Caracas"]
-      }))
-    );
-    const unseenSourceJobs = await keepUnseenJobs(sourceJobs, profile.id);
-    const digestJobs = unseenSourceJobs.slice(0, profile.maxJobsPerEmail);
-
-    console.log(`Resumen de busqueda (${profile.name}):`);
-    for (const stat of stats) {
-      console.log(`- ${stat}`);
-    }
-    console.log(`- Total recibido: ${allJobs.length}`);
-    console.log(`- Ofertas deduplicadas: ${sourceJobs.length}`);
-    console.log(`- Nuevas no enviadas antes: ${unseenSourceJobs.length}`);
-    console.log(`- Seleccionadas para email: ${digestJobs.length}`);
-
-    if (digestJobs.length === 0 && !config.sendEmptyDigest) {
-      console.log(`No hay ofertas nuevas para enviar (${profile.name}).`);
-      return;
-    }
-
-    const date = new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(new Date());
-    await sendEmail({
-      subject: `${profile.subjectPrefix} - ${date}`,
-      text: renderTextDigest(digestJobs, profile),
-      html: renderHtmlDigest(digestJobs, profile),
-      to: profile.emailTo
-    });
-
-    if (!config.dryRun) {
-      await markJobsAsSeen(digestJobs, profile.id);
-    }
-
-    console.log(`Proceso finalizado (${profile.name}). Ofertas enviadas: ${digestJobs.length}`);
-    return;
-  }
-
-  const recentJobs = allJobs.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
+  const jobsWithDetails = isMomNursingProfile(profile) ? await enrichJobsWithLandingPage(dedupeJobs(allJobs)) : allJobs;
+  const recentJobs = isMomNursingProfile(profile)
+    ? jobsWithDetails
+    : jobsWithDetails.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
   const candidateJobs = preselectJobCandidates(dedupeJobs(recentJobs), profile);
-  const { jobs: freshCandidateJobs, staleCount } = await filterFreshJobsByLandingPage(candidateJobs, profile);
-  const unseenJobs = await keepUnseenJobs(rankJobs(freshCandidateJobs), profile.id);
+  const { jobs: freshCandidateJobs, staleCount } = isMomNursingProfile(profile)
+    ? { jobs: candidateJobs, staleCount: 0 }
+    : await filterFreshJobsByLandingPage(candidateJobs, profile);
+  const { jobs: criticalFilteredJobs, rejectedCount: criticalRejectedCount } = isMomNursingProfile(profile)
+    ? filterNursingCriticalExclusions(freshCandidateJobs)
+    : { jobs: freshCandidateJobs, rejectedCount: 0 };
+  const unseenJobs = await keepUnseenJobs(rankJobs(criticalFilteredJobs), profile.id);
   const jobsToEvaluate = config.enableAiMatching
     ? unseenJobs.slice(0, profile.aiMaxCandidates)
     : unseenJobs.slice(0, profile.maxJobsPerEmail);
@@ -94,6 +63,7 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   console.log(`- Recientes (${profile.lookbackDays} dias): ${recentJobs.length}`);
   console.log(`- Candidatas para IA: ${candidateJobs.length}`);
   console.log(`- Descartadas por fecha real antigua: ${staleCount}`);
+  console.log(`- Descartadas por filtro critico: ${criticalRejectedCount}`);
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
   console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
   console.log(`- Seleccionadas para email: ${digestJobs.length}`);

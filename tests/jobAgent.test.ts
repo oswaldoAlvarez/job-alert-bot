@@ -4,6 +4,7 @@ import { momNursingProfile } from "../src/config.js";
 import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
 import { extractVisiblePageDate } from "../src/services/freshness.js";
+import { filterNursingCriticalExclusions, isAgeCompatibleForYuly } from "../src/services/nursingFilters.js";
 import type { JobPosting, MatchedJob } from "../src/types.js";
 
 const baseJob: JobPosting = {
@@ -339,5 +340,51 @@ describe("momNursingProfile", () => {
     expect(momNursingProfile.id).toBe("mom-nursing-caracas");
     expect(momNursingProfile.sourceMode).toBe("serpapi_only");
     expect(momNursingProfile.maxJobsPerEmail).toBeGreaterThan(0);
+  });
+});
+
+describe("filterNursingCriticalExclusions", () => {
+  it("descarta ofertas con edad maxima menor a 59", () => {
+    const { jobs } = filterNursingCriticalExclusions([
+      {
+        ...baseJob,
+        title: "Enfermera domiciliaria",
+        description: "Edad entre 25 a 45 años. Cuidado de pacientes en Caracas.",
+        score: 1,
+        reasons: []
+      } as MatchedJob
+    ]);
+
+    expect(jobs).toHaveLength(0);
+    expect(isAgeCompatibleForYuly("Edad mayor de 25 años")).toBe(true);
+    expect(isAgeCompatibleForYuly("Edad hasta 45 años")).toBe(false);
+  });
+
+  it("descarta emergencias ambulancia y terapia intensiva", () => {
+    const { jobs } = filterNursingCriticalExclusions([
+      {
+        ...baseJob,
+        title: "Enfermero ambulancia",
+        description: "Atencion de emergencias, trauma, triaje y traslados criticos.",
+        score: 1,
+        reasons: []
+      } as MatchedJob
+    ]);
+
+    expect(jobs).toHaveLength(0);
+  });
+
+  it("descarta ventas comerciales", () => {
+    const { jobs } = filterNursingCriticalExclusions([
+      {
+        ...baseJob,
+        title: "Enfermera ventas equipos medicos",
+        description: "Asesor comercial y ventas de equipos medicos.",
+        score: 1,
+        reasons: []
+      } as MatchedJob
+    ]);
+
+    expect(jobs).toHaveLength(0);
   });
 });
