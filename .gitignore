@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 data/seen-jobs.json
+data/seen-jobs-*.json
 data/serpapi-usage.json
 coverage/
 .DS_Store
