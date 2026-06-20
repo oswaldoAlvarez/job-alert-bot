@@ -4,6 +4,7 @@ import { evaluateJobsWithAi, shouldSendAiMatchedJob } from "../services/aiMatche
 import { fetchCvText } from "../services/cv.js";
 import { renderHtmlDigest, renderTextDigest } from "../services/digest.js";
 import { sendEmail } from "../services/email.js";
+import { filterFreshJobsByLandingPage } from "../services/freshness.js";
 import { keepUnseenJobs, markJobsAsSeen } from "../services/state.js";
 import type { JobProfile, MatchedJob } from "../types.js";
 import { preselectJobCandidates } from "./preselectJobs.js";
@@ -28,7 +29,8 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
   const recentJobs = allJobs.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
   const candidateJobs = preselectJobCandidates(dedupeJobs(recentJobs), profile);
-  const unseenJobs = await keepUnseenJobs(rankJobs(candidateJobs), profile.id);
+  const { jobs: freshCandidateJobs, staleCount } = await filterFreshJobsByLandingPage(candidateJobs, profile);
+  const unseenJobs = await keepUnseenJobs(rankJobs(freshCandidateJobs), profile.id);
   const jobsToEvaluate = config.enableAiMatching
     ? unseenJobs.slice(0, profile.aiMaxCandidates)
     : unseenJobs.slice(0, profile.maxJobsPerEmail);
@@ -48,6 +50,7 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   console.log(`- Total recibido: ${allJobs.length}`);
   console.log(`- Recientes (${profile.lookbackDays} dias): ${recentJobs.length}`);
   console.log(`- Candidatas para IA: ${candidateJobs.length}`);
+  console.log(`- Descartadas por fecha real antigua: ${staleCount}`);
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
   console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
   console.log(`- Seleccionadas para email: ${digestJobs.length}`);

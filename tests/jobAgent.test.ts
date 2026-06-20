@@ -3,6 +3,7 @@ import { preselectJobCandidate } from "../src/agent/preselectJobs.js";
 import { momNursingProfile } from "../src/config.js";
 import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
+import { extractVisiblePageDate } from "../src/services/freshness.js";
 import type { JobPosting, MatchedJob } from "../src/types.js";
 
 const baseJob: JobPosting = {
@@ -288,5 +289,19 @@ describe("shouldSendAiMatchedJob", () => {
     );
 
     expect(shouldSend).toBe(true);
+  });
+});
+
+describe("extractVisiblePageDate", () => {
+  it("detecta fechas visibles en ingles", () => {
+    const date = extractVisiblePageDate("<main><p>February 18, 2026</p></main>");
+
+    expect(date?.toISOString().slice(0, 10)).toBe("2026-02-18");
+  });
+
+  it("detecta fechas visibles en espanol", () => {
+    const date = extractVisiblePageDate("<main><p>18 de febrero de 2026</p></main>");
+
+    expect(date?.toISOString().slice(0, 10)).toBe("2026-02-18");
   });
 });
