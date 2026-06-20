@@ -56,6 +56,9 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
     0,
     profile.maxJobsPerEmail
   );
+  const rejectedByAiJobs = config.enableAiMatching
+    ? evaluatedJobs.filter((job) => !shouldSendAiMatchedJob(job, profile))
+    : [];
 
   console.log(`Resumen de busqueda (${profile.name}):`);
   for (const stat of stats) {
@@ -69,6 +72,15 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
   console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
   console.log(`- Seleccionadas para email: ${digestJobs.length}`);
+  for (const job of rejectedByAiJobs.slice(0, 10)) {
+    const evaluation = job.aiEvaluation;
+    if (!evaluation) continue;
+    console.log(
+      `Oferta evaluada no enviada (${profile.name}): ${job.title} ` +
+        `(recomendacion=${evaluation.recommendation}, score=${evaluation.compatibilityScore}, ` +
+        `rol=${evaluation.roleFocus}, fit=${evaluation.frontendFit})`
+    );
+  }
 
   if (digestJobs.length === 0 && !config.sendEmptyDigest) {
     if (config.enableAiMatching && !config.dryRun) {

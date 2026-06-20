@@ -322,8 +322,10 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
         : acceptedFrontendFit;
   const acceptedBackend = guardrails?.rejectHighBackend === false ? true : evaluation.backendWeight !== "alto";
 
+  const acceptsReviewRecommendation =
+    profile?.id === "mom-nursing-caracas" || profile?.id === "sister-bakery-caracas";
   const acceptedRecommendation =
-    profile?.id === "mom-nursing-caracas"
+    acceptsReviewRecommendation
       ? ["aplicar", "revisar"].includes(evaluation.recommendation)
       : evaluation.recommendation === "aplicar";
 

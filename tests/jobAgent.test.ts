@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { preselectJobCandidate } from "../src/agent/preselectJobs.js";
-import { momNursingProfile } from "../src/config.js";
+import { momNursingProfile, sisterBakeryProfile } from "../src/config.js";
 import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
 import { extractVisiblePageDate } from "../src/services/freshness.js";
@@ -315,6 +315,34 @@ describe("shouldSendAiMatchedJob", () => {
         }
       } as MatchedJob,
       momNursingProfile
+    );
+
+    expect(shouldSend).toBe(true);
+  });
+
+  it("acepta ofertas revisar de pasteleria para el perfil de Yuliana", () => {
+    const shouldSend = shouldSendAiMatchedJob(
+      {
+        ...baseJob,
+        score: 20,
+        reasons: ["Senales objetivo: pasteleria"],
+        aiEvaluation: {
+          ...goodEvaluation,
+          compatibilityScore: 20,
+          recommendation: "revisar",
+          summary: "Oferta relacionada con pasteleria en Caracas.",
+          matchReasons: ["Pasteleria", "Caracas"],
+          concerns: ["Confirmar horario"],
+          frontendFit: "bajo",
+          backendWeight: "alto",
+          englishRequirement: "unknown",
+          remoteFit: "Presencial en Caracas",
+          remoteScope: "onsite",
+          roleFocus: "other",
+          spanishFit: "not_specified"
+        }
+      } as MatchedJob,
+      sisterBakeryProfile
     );
 
     expect(shouldSend).toBe(true);
