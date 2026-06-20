@@ -2,6 +2,23 @@ import { config } from "../config.js";
 import { stripHtml } from "../filters/normalize.js";
 import type { AiJobEvaluation, MatchedJob } from "../types.js";
 
+class AiProviderError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string
+  ) {
+    super(message);
+  }
+}
+
+const isFatalAiError = (error: unknown): boolean =>
+  error instanceof AiProviderError &&
+  (error.code === "insufficient_quota" ||
+    error.code === "invalid_api_key" ||
+    error.status === 401 ||
+    error.status === 403);
+
 const trimArray = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
 
@@ -187,7 +204,12 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
 
   const payload = (await response.json()) as Record<string, unknown>;
   if (!response.ok) {
-    throw new Error(`OpenAI fallo (${response.status}): ${JSON.stringify(payload).slice(0, 500)}`);
+    const errorData =
+      typeof payload.error === "object" && payload.error !== null ? (payload.error as Record<string, unknown>) : {};
+    const code = typeof errorData.code === "string" ? errorData.code : undefined;
+    const message = typeof errorData.message === "string" ? errorData.message : JSON.stringify(payload);
+
+    throw new AiProviderError(`OpenAI fallo (${response.status}): ${message}`, response.status, code);
   }
 
   const aiEvaluation = parseAiEvaluation(extractJson(readResponseText(payload)));
@@ -221,6 +243,10 @@ export const evaluateJobsWithAi = async (jobs: MatchedJob[], cvText: string): Pr
     try {
       evaluated.push(await evaluateJobWithAi(job, cvText));
     } catch (error) {
+      if (isFatalAiError(error)) {
+        throw error;
+      }
+
       console.warn(`IA fallida para ${job.title}: ${error}`);
       evaluated.push({
         ...job,
