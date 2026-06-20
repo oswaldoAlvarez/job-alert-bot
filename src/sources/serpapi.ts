@@ -128,7 +128,9 @@ const writeUsageState = async (state: SerpApiUsageState): Promise<void> => {
 };
 
 const isRunDue = (state: SerpApiUsageState, profileId: string, runEveryHours: number): boolean => {
-  const lastRun = state.lastRunAtByProfile?.[profileId] ?? state.lastRunAt;
+  const lastRun = profileId === "default"
+    ? state.lastRunAtByProfile?.[profileId] ?? state.lastRunAt
+    : state.lastRunAtByProfile?.[profileId];
   if (!lastRun) return true;
 
   const lastRunAt = new Date(lastRun).getTime();
