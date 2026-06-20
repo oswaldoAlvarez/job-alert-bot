@@ -49,8 +49,18 @@ const blockedNonNursingTerms = [
   "administrativa"
 ];
 
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const hasTerm = (text: string, term: string): boolean => {
+  const normalizedTerm = normalizeText(term).trim();
+  if (!normalizedTerm) return false;
+
+  const pattern = new RegExp(`(^|[^a-z0-9])${escapeRegExp(normalizedTerm)}([^a-z0-9]|$)`, "i");
+  return pattern.test(text);
+};
+
 const hasAny = (text: string, terms: string[]): string | undefined =>
-  terms.find((term) => text.includes(normalizeText(term)));
+  terms.find((term) => hasTerm(text, term));
 
 const maxAgeFromText = (text: string): number | undefined => {
   const patterns = [

@@ -31,6 +31,39 @@ const isMomNursingProfile = (profile: JobProfile): boolean => profile.id === "mo
 const shouldReadLandingPage = (profile: JobProfile): boolean =>
   profile.id === "mom-nursing-caracas" || profile.id === "sister-bakery-caracas";
 const shouldVerifyFreshness = (profile: JobProfile): boolean => profile.sourceMode === "tech";
+const isTechProfile = (profile: JobProfile): boolean => profile.sourceMode === "tech";
+
+const inferSeniority = (job: MatchedJob): string => {
+  const text = [job.title, job.description, job.tags.join(" ")].join(" ").toLowerCase();
+  if (/\b(sr|senior|principal|staff|lead)\b/.test(text)) return "senior";
+  if (/\b(ssr|semi senior|semi-senior|mid|middle)\b/.test(text)) return "semi senior";
+  if (/\b(jr|junior|trainee|aprendiz|ayudante|auxiliar|assistant)\b/.test(text)) return "junior/ayudante";
+  if (/\b\d+\+?\s*(anos|años|years)\b/.test(text)) return "con experiencia";
+  return "no indicado";
+};
+
+const profileRoleLabel = (profile: JobProfile): string => {
+  if (profile.id === "mom-nursing-caracas") return "enfermeria";
+  if (profile.id === "sister-bakery-caracas") return "pasteleria/panaderia";
+  return "tech";
+};
+
+const compactJobLabel = (job: MatchedJob, profile: JobProfile): string =>
+  `${job.title} | Empresa: ${job.company} | Rol: ${profileRoleLabel(profile)} | Seniority: ${inferSeniority(job)}`;
+
+const compactRejectionReason = (job: MatchedJob, profile: JobProfile): string => {
+  const reasons = getAiRejectionReasons(job, profile);
+  if (reasons.length === 0) return "no cumplio filtros";
+
+  if (!isTechProfile(profile)) {
+    if (reasons.some((reason) => reason.includes("IA recomendo descartar"))) return "IA descarto por no corresponder al perfil";
+    if (reasons.some((reason) => reason.includes("ingles"))) return "idioma no compatible";
+    if (reasons.some((reason) => reason.includes("remoto") || reason.includes("ubicacion"))) return "ubicacion/modalidad no compatible";
+    if (reasons.some((reason) => reason.includes("score"))) return "baja compatibilidad";
+  }
+
+  return reasons.slice(0, 3).join(" | ");
+};
 
 const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
@@ -66,26 +99,30 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
     console.log(`- ${stat}`);
   }
   console.log(`- Total recibido: ${allJobs.length}`);
-  console.log(`- Recientes (${profile.lookbackDays} dias): ${recentJobs.length}`);
+  console.log(
+    shouldReadLandingPage(profile)
+      ? `- Recientes: filtro de fecha no aplicado (${recentJobs.length})`
+      : `- Recientes (${profile.lookbackDays} dias): ${recentJobs.length}`
+  );
   console.log(`- Candidatas para IA: ${candidateJobs.length}`);
   console.log(`- Descartadas por fecha real antigua: ${staleCount}`);
   console.log(`- Descartadas por filtro critico: ${criticalRejectedCount}`);
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
   console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
   console.log(`- Seleccionadas para email: ${digestJobs.length}`);
+  for (const job of digestJobs) {
+    console.log(`ENVIADA (${profile.name}): ${compactJobLabel(job, profile)}`);
+  }
   for (const job of rejectedByAiJobs) {
     const evaluation = job.aiEvaluation;
     if (!evaluation) continue;
-    const rejectionReasons = getAiRejectionReasons(job, profile);
+    const techDetails = isTechProfile(profile)
+      ? ` | score=${evaluation.compatibilityScore} | recomendacion=${evaluation.recommendation}`
+      : "";
     console.log(
-      `Oferta evaluada no enviada (${profile.name}): ${job.title} ` +
-        `(recomendacion=${evaluation.recommendation}, score=${evaluation.compatibilityScore}, ` +
-        `rol=${evaluation.roleFocus}, fit=${evaluation.frontendFit}, ` +
-        `motivo=${rejectionReasons.join(" | ") || "no indicado"})`
+      `DESCARTADA (${profile.name}): ${compactJobLabel(job, profile)} | ` +
+        `Motivo: ${compactRejectionReason(job, profile)}${techDetails}`
     );
-    if (evaluation.concerns.length > 0) {
-      console.log(`  Dudas/Riesgos IA: ${evaluation.concerns.join(" | ")}`);
-    }
   }
 
   if (digestJobs.length === 0 && !config.sendEmptyDigest) {

@@ -444,4 +444,19 @@ describe("filterNursingCriticalExclusions", () => {
 
     expect(jobs).toHaveLength(0);
   });
+
+  it("no confunde uci dentro de palabras como reducing con terapia intensiva", () => {
+    const { jobs, rejectedCount } = filterNursingCriticalExclusions([
+      {
+        ...baseJob,
+        title: "Enfermera domiciliaria",
+        description: "Cuidado de pacientes en Caracas. Helping patients while reducing recovery friction.",
+        score: 10,
+        reasons: ["Senales objetivo: enfermera"]
+      }
+    ]);
+
+    expect(rejectedCount).toBe(0);
+    expect(jobs).toHaveLength(1);
+  });
 });

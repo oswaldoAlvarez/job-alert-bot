@@ -14,13 +14,20 @@ export type SourceResult = {
 };
 
 export const fetchAllJobs = async (profile?: JobProfile): Promise<SourceResult> => {
-  const rssFeeds = [...config.defaultRssFeeds, ...config.extraRssFeeds];
+  const isTechProfile = !profile || profile.sourceMode === "tech";
+  const rssFeeds = isTechProfile
+    ? [...config.defaultRssFeeds, ...config.extraRssFeeds]
+    : config.extraRssFeeds;
   const sourceCalls = [
-    { name: "Remotive", run: fetchRemotiveJobs },
-    { name: "RemoteOK", run: fetchRemoteOkJobs },
-    { name: "Jobicy", run: fetchJobicyJobs },
-    { name: "Get on Board", run: fetchGetOnBoardJobs },
-    { name: "Arbeitnow", run: fetchArbeitnowJobs },
+    ...(isTechProfile
+      ? [
+          { name: "Remotive", run: fetchRemotiveJobs },
+          { name: "RemoteOK", run: fetchRemoteOkJobs },
+          { name: "Jobicy", run: fetchJobicyJobs },
+          { name: "Get on Board", run: fetchGetOnBoardJobs },
+          { name: "Arbeitnow", run: fetchArbeitnowJobs }
+        ]
+      : []),
     ...(rssFeeds.length > 0 ? [{ name: "RSS feeds", run: () => fetchRssJobs(rssFeeds) }] : []),
     ...(config.enableSerpApi
       ? [
