@@ -402,6 +402,42 @@ SISTER_SERPAPI_QUERIES
 
 Si no configuras estas variables opcionales, el workflow usa valores por defecto.
 
+### Cambios Para Tres Perfiles Cada 12 Horas
+
+Para activar el perfil de Yuliana solo hay que agregar sus `secrets` y variables. No conviene guardar correos personales ni CVs completos dentro del repo.
+
+Secrets agregados:
+
+```txt
+SISTER_EMAIL_TO
+SISTER_CV_TEXT
+```
+
+Variables agregadas:
+
+```txt
+ENABLE_SISTER_BAKERY_PROFILE
+SISTER_PROFILE_NAME
+SISTER_SUBJECT_PREFIX
+SISTER_LOCATION
+SISTER_MIN_COMPATIBILITY_SCORE
+SISTER_LOOKBACK_DAYS
+SISTER_MAX_JOBS_PER_EMAIL
+SISTER_AI_MAX_CANDIDATES
+SISTER_SERPAPI_RUN_EVERY_HOURS
+SISTER_SERPAPI_MAX_QUERIES_PER_RUN
+SISTER_SERPAPI_QUERIES
+```
+
+Variables modificadas para correr cada 12 horas y cuidar la cuota de SerpApi:
+
+```txt
+SERPAPI_RUN_EVERY_HOURS
+SERPAPI_MAX_QUERIES_PER_RUN
+MOM_SERPAPI_RUN_EVERY_HOURS
+MOM_SERPAPI_MAX_QUERIES_PER_RUN
+```
+
 ### Perfil Opcional: Enfermeria Caracas
 
 Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
