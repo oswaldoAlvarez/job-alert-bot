@@ -38,7 +38,7 @@ export const config = {
   serpApiLanguage: process.env.SERPAPI_HL ?? "es",
   serpApiMonthlyLimit: numberFromEnv("SERPAPI_MONTHLY_LIMIT", 220),
   serpApiRunEveryHours: numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12),
-  serpApiMaxQueriesPerRun: numberFromEnv("SERPAPI_MAX_QUERIES_PER_RUN", 3),
+  serpApiMaxQueriesPerRun: numberFromEnv("SERPAPI_MAX_QUERIES_PER_RUN", 1),
   serpApiQueries: listFromEnv("SERPAPI_QUERIES", "|"),
   sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", true),
   dryRun: booleanFromEnv("DRY_RUN", false),
@@ -325,6 +325,21 @@ export const config = {
     serpApiQueries: listFromEnv("MOM_SERPAPI_QUERIES", "|"),
     serpApiRunEveryHours: numberFromEnv("MOM_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
     serpApiMaxQueriesPerRun: numberFromEnv("MOM_SERPAPI_MAX_QUERIES_PER_RUN", 1)
+  },
+  sister: {
+    enabled: booleanFromEnv("ENABLE_SISTER_BAKERY_PROFILE", false),
+    emailTo: process.env.SISTER_EMAIL_TO,
+    cvText: process.env.SISTER_CV_TEXT,
+    profileName: process.env.SISTER_PROFILE_NAME ?? "Pasteleria Panaderia Caracas",
+    subjectPrefix: process.env.SISTER_SUBJECT_PREFIX ?? "Ofertas Pasteleria Panaderia Caracas",
+    location: process.env.SISTER_LOCATION,
+    minCompatibilityScore: numberFromEnv("SISTER_MIN_COMPATIBILITY_SCORE", 0),
+    lookbackDays: numberFromEnv("SISTER_LOOKBACK_DAYS", 7),
+    maxJobsPerEmail: numberFromEnv("SISTER_MAX_JOBS_PER_EMAIL", 20),
+    aiMaxCandidates: numberFromEnv("SISTER_AI_MAX_CANDIDATES", 20),
+    serpApiQueries: listFromEnv("SISTER_SERPAPI_QUERIES", "|"),
+    serpApiRunEveryHours: numberFromEnv("SISTER_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiMaxQueriesPerRun: numberFromEnv("SISTER_SERPAPI_MAX_QUERIES_PER_RUN", 1)
   }
 };
 
@@ -393,6 +408,19 @@ const momDefaultQueries = [
   "enfermera alimentacion por sonda Caracas",
   "enfermera administracion de tratamiento Caracas",
   "enfermero Caracas Distrito Capital"
+];
+
+const sisterDefaultQueries = [
+  "pastelera Caracas Venezuela",
+  "panadera Caracas Venezuela",
+  "repostera Caracas Venezuela",
+  "decoradora de tortas Caracas",
+  "decoracion de tortas Caracas",
+  "bomboneria Caracas empleo",
+  "chocolateria Caracas empleo",
+  "merengues pasteleria Caracas",
+  "ayudante de pasteleria Caracas",
+  "panaderia pasteleria Caracas empleo"
 ];
 
 export const momNursingProfile: JobProfile = {
@@ -518,6 +546,126 @@ export const momNursingProfile: JobProfile = {
     "Descartar cualquier oferta que no sea realmente de enfermeria, enfermero/enfermera, auxiliar de enfermeria, cuidado de pacientes o atencion asistencial directa.",
     "Extraer salario/rango salarial si aparece. Si no aparece, usar No indicado.",
     "Recomendar aplicar si la oferta esta minimamente relacionada con enfermeria/cuidado de pacientes y podria ser trabajable para ella. Usar descartar solo si claramente no corresponde."
+  ],
+  sendGuardrails: {
+    acceptedRoles: ["other"],
+    acceptedRemoteScopes: ["country_restricted", "region_restricted", "hybrid", "onsite", "unknown"],
+    acceptedEnglishRequirements: ["none", "not_specified", "unknown", "b1", "b2"],
+    acceptedSpanishFits: ["spanish_offer", "spanish_speaking_team", "not_specified"],
+    allowMediumFrontendForFullstack: true,
+    rejectHighBackend: false,
+    requireSpanishSignal: false
+  }
+};
+
+export const sisterBakeryProfile: JobProfile = {
+  id: "sister-bakery-caracas",
+  name: config.sister.profileName,
+  subjectPrefix: config.sister.subjectPrefix,
+  emailTo: config.sister.emailTo,
+  cvText:
+    config.sister.cvText ??
+    "Yuliana Alvarez. Ayudante de pasteleria y panaderia en Caracas, Venezuela. Pastelera y panadera profesional con formacion tecnica y 2 anos de experiencia liderando produccion independiente. Experiencia en elaboracion artesanal de pasteleria y panaderia, control de calidad, mise en place, organizacion de recetas, higiene, presentacion de productos y adaptacion a cocinas comerciales. Conocimientos: masas quebradas, batidos, merengues, hojaldre, chocolate y decoracion de tortas. Estudios: Escuela de gastronomia Mariano Moreno, panaderia y pasteleria 2024-2025. Busca ofertas en panaderia, pasteleria, reposteria, bomboneria, chocolateria, decoracion de tortas o produccion dulce. No busca ayudante de cocina, cocina general, cocina salada, chef de cocina, restaurante general ni cargos fuera de panaderia/pasteleria.",
+  lookbackDays: config.sister.lookbackDays,
+  maxJobsPerEmail: config.sister.maxJobsPerEmail,
+  aiMaxCandidates: config.sister.aiMaxCandidates,
+  aiMinCompatibilityScore: config.sister.minCompatibilityScore,
+  sourceMode: "serpapi_only",
+  serpApiQueries: config.sister.serpApiQueries.length > 0 ? config.sister.serpApiQueries : sisterDefaultQueries,
+  serpApiLocation: config.sister.location,
+  serpApiRunEveryHours: config.sister.serpApiRunEveryHours,
+  serpApiMaxQueriesPerRun: config.sister.serpApiMaxQueriesPerRun,
+  requiredTerms: [
+    "pastelera",
+    "pastelero",
+    "pasteleria",
+    "pastelería",
+    "panadera",
+    "panadero",
+    "panaderia",
+    "panadería",
+    "repostera",
+    "repostero",
+    "reposteria",
+    "repostería",
+    "bomboneria",
+    "bombonería",
+    "chocolateria",
+    "chocolatería",
+    "tortas",
+    "torta",
+    "merengues"
+  ],
+  optionalTerms: [
+    "decoracion de tortas",
+    "decoración de tortas",
+    "decoradora de tortas",
+    "decorador de tortas",
+    "dulceria",
+    "dulcería",
+    "postres",
+    "chocolate",
+    "bombones",
+    "masa",
+    "panes",
+    "panificacion",
+    "panificación",
+    "horneado",
+    "obrador",
+    "produccion dulce",
+    "producción dulce"
+  ],
+  exclusionTerms: [
+    "ayudante de cocina",
+    "auxiliar de cocina",
+    "cocina",
+    "cocinero",
+    "cocinera",
+    "chef de cocina",
+    "chef ejecutivo",
+    "parrillero",
+    "pizzero",
+    "sushi",
+    "barista",
+    "mesonero",
+    "mesonera",
+    "atencion al cliente",
+    "atención al cliente",
+    "ventas",
+    "vendedor",
+    "vendedora",
+    "cajero",
+    "cajera"
+  ],
+  blockedTerms: ["brazil", "brasil", "portuguese", "portugues", "portugués"],
+  positiveSignals: [
+    "caracas",
+    "distrito capital",
+    "venezuela",
+    "pasteleria",
+    "pastelería",
+    "panaderia",
+    "panadería",
+    "reposteria",
+    "repostería",
+    "bomboneria",
+    "bombonería",
+    "decoracion",
+    "decoración",
+    "tortas",
+    "merengues",
+    "chocolate"
+  ],
+  promptPreferences: [
+    "Perfil objetivo: Yuliana Alvarez, ayudante de pasteleria y panaderia en Caracas, Venezuela.",
+    "Experiencia aproximada: 2 anos liderando produccion independiente y formacion en panaderia/pasteleria. No exigir experiencia senior.",
+    "Especialidades: bomboneria, merengues, decoracion de tortas, chocolate, hojaldre, masas quebradas, batidos, panaderia y pasteleria.",
+    "Enviar ofertas relacionadas con pasteleria, panaderia, reposteria, bomboneria, chocolateria, decoracion de tortas, produccion dulce, postres o panificacion.",
+    "Ser laxo con experiencia: aceptar trainee, aprendiz, ayudante de pasteleria/panaderia, junior, auxiliar de pasteleria o roles con 0 a 3 anos de experiencia.",
+    "Descartar ayudante de cocina, cocina general, cocina salada, restaurante general, chef de cocina, parrilla, sushi, barista, mesonero, caja, ventas, atencion al cliente o cargos fuera de panaderia/pasteleria.",
+    "Priorizar Caracas, Distrito Capital o zonas razonables de Caracas. Descartar ofertas fuera de Venezuela o que exijan mudarse lejos.",
+    "Extraer salario/rango salarial si aparece. Si no aparece, usar No indicado.",
+    "Mantener explicacion de por que matchea y dudas/riesgos para que ella pueda decidir."
   ],
   sendGuardrails: {
     acceptedRoles: ["other"],

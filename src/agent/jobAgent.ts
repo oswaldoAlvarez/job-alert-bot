@@ -1,4 +1,4 @@
-import { config, momNursingProfile, oswaldoProfile } from "../config.js";
+import { config, momNursingProfile, oswaldoProfile, sisterBakeryProfile } from "../config.js";
 import { dedupeJobs, isRecent } from "../filters/normalize.js";
 import { evaluateJobsWithAi, shouldSendAiMatchedJob } from "../services/aiMatcher.js";
 import { fetchCvText } from "../services/cv.js";
@@ -28,11 +28,13 @@ const resolveCvText = async (profile: JobProfile): Promise<string> => {
 };
 
 const isMomNursingProfile = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
+const shouldReadLandingPage = (profile: JobProfile): boolean =>
+  profile.id === "mom-nursing-caracas" || profile.id === "sister-bakery-caracas";
 
 const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
-  const jobsWithDetails = isMomNursingProfile(profile) ? await enrichJobsWithLandingPage(dedupeJobs(allJobs)) : allJobs;
-  const recentJobs = isMomNursingProfile(profile)
+  const jobsWithDetails = shouldReadLandingPage(profile) ? await enrichJobsWithLandingPage(dedupeJobs(allJobs)) : allJobs;
+  const recentJobs = shouldReadLandingPage(profile)
     ? jobsWithDetails
     : jobsWithDetails.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
   const candidateJobs = preselectJobCandidates(dedupeJobs(recentJobs), profile);
@@ -94,7 +96,11 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
 };
 
 export const runJobAgent = async (): Promise<void> => {
-  const profiles = [oswaldoProfile, ...(config.mom.enabled ? [momNursingProfile] : [])];
+  const profiles = [
+    oswaldoProfile,
+    ...(config.mom.enabled ? [momNursingProfile] : []),
+    ...(config.sister.enabled ? [sisterBakeryProfile] : [])
+  ];
 
   for (const profile of profiles) {
     await runProfileJobAgent(profile);

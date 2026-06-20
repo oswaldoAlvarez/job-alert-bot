@@ -1,8 +1,8 @@
-name: Job alert every 6 hours
+name: Job alert every 12 hours
 
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "0 0,12 * * *"
   workflow_dispatch:
 
 jobs:
@@ -46,6 +46,8 @@ jobs:
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
           MOM_EMAIL_TO: ${{ secrets.MOM_EMAIL_TO }}
           MOM_CV_TEXT: ${{ secrets.MOM_CV_TEXT }}
+          SISTER_EMAIL_TO: ${{ secrets.SISTER_EMAIL_TO }}
+          SISTER_CV_TEXT: ${{ secrets.SISTER_CV_TEXT }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ENABLE_AI_MATCHING: ${{ vars.ENABLE_AI_MATCHING || 'true' }}
@@ -59,7 +61,7 @@ jobs:
           SERPAPI_HL: ${{ vars.SERPAPI_HL || 'es' }}
           SERPAPI_MONTHLY_LIMIT: ${{ vars.SERPAPI_MONTHLY_LIMIT || '220' }}
           SERPAPI_RUN_EVERY_HOURS: ${{ vars.SERPAPI_RUN_EVERY_HOURS || '12' }}
-          SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SERPAPI_MAX_QUERIES_PER_RUN || '3' }}
+          SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
           SERPAPI_QUERIES: ${{ vars.SERPAPI_QUERIES || '' }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '7' }}
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
@@ -76,3 +78,14 @@ jobs:
           MOM_SERPAPI_RUN_EVERY_HOURS: ${{ vars.MOM_SERPAPI_RUN_EVERY_HOURS || '12' }}
           MOM_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.MOM_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
           MOM_SERPAPI_QUERIES: ${{ vars.MOM_SERPAPI_QUERIES || '' }}
+          ENABLE_SISTER_BAKERY_PROFILE: ${{ vars.ENABLE_SISTER_BAKERY_PROFILE || 'false' }}
+          SISTER_PROFILE_NAME: ${{ vars.SISTER_PROFILE_NAME || 'Yuliana Pasteleria Panaderia Caracas' }}
+          SISTER_SUBJECT_PREFIX: ${{ vars.SISTER_SUBJECT_PREFIX || 'Ofertas Pasteleria Panaderia Caracas' }}
+          SISTER_LOCATION: ${{ vars.SISTER_LOCATION || '' }}
+          SISTER_MIN_COMPATIBILITY_SCORE: ${{ vars.SISTER_MIN_COMPATIBILITY_SCORE || '0' }}
+          SISTER_LOOKBACK_DAYS: ${{ vars.SISTER_LOOKBACK_DAYS || '7' }}
+          SISTER_MAX_JOBS_PER_EMAIL: ${{ vars.SISTER_MAX_JOBS_PER_EMAIL || '20' }}
+          SISTER_AI_MAX_CANDIDATES: ${{ vars.SISTER_AI_MAX_CANDIDATES || '20' }}
+          SISTER_SERPAPI_RUN_EVERY_HOURS: ${{ vars.SISTER_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          SISTER_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SISTER_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
+          SISTER_SERPAPI_QUERIES: ${{ vars.SISTER_SERPAPI_QUERIES || '' }}

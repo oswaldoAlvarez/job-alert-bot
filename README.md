@@ -2,7 +2,7 @@
 
 Agente en Node.js + TypeScript que busca ofertas de empleo para perfiles SSR/SR de React, React Native o Frontend, compara cada oferta contra el CV virtual con IA y envia un resumen por correo.
 
-El objetivo es recibir actualizaciones automáticas cada 6 horas con hasta 20 ofertas relevantes para LATAM, Europa, posiciones remotas, freelance o contractor.
+El objetivo es recibir actualizaciones automáticas cada 12 horas con hasta 20 ofertas relevantes por perfil.
 
 ## Que Hace
 
@@ -22,7 +22,7 @@ Cada ejecución del bot hace este flujo:
 El bot puede ejecutarse de dos formas:
 
 - Manualmente desde tu Mac.
-- Automaticamente cada 6 horas con GitHub Actions.
+- Automaticamente cada 12 horas con GitHub Actions.
 
 ## Criterios Del Agente
 
@@ -189,7 +189,7 @@ Guarda ofertas ya enviadas en `data/seen-jobs.json` para no repetirlas.
 
 `.github/workflows/daily-jobs.yml`
 
-Workflow de GitHub Actions que ejecuta el bot cada 6 horas.
+Workflow de GitHub Actions que ejecuta el bot cada 12 horas.
 
 ## Configuracion Local
 
@@ -229,7 +229,7 @@ SERPAPI_GL=us
 SERPAPI_HL=es
 SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_RUN_EVERY_HOURS=12
-SERPAPI_MAX_QUERIES_PER_RUN=3
+SERPAPI_MAX_QUERIES_PER_RUN=1
 SERPAPI_QUERIES=
 LOOKBACK_DAYS=7
 MAX_JOBS_PER_EMAIL=20
@@ -248,10 +248,10 @@ Para cuidar el plan gratis de SerpApi, el agente tiene un limite interno:
 ```txt
 SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_RUN_EVERY_HOURS=12
-SERPAPI_MAX_QUERIES_PER_RUN=3
+SERPAPI_MAX_QUERIES_PER_RUN=1
 ```
 
-Con esos valores, aunque GitHub Actions corra cada 6 horas, SerpApi solo se consulta cada 12 horas y ejecuta hasta 3 busquedas por vez. Eso consume aproximadamente 180-186 busquedas al mes y deja margen por debajo de 220.
+Con esos valores, GitHub Actions corre cada 12 horas y cada perfil usa como maximo 1 busqueda de SerpApi por corrida. Con tres perfiles activos, eso consume aproximadamente 180 busquedas al mes.
 
 `SERPAPI_QUERIES` permite definir busquedas separadas por `|`. Ejemplo:
 
@@ -306,13 +306,13 @@ npm start
 
 ## Automatizacion Con GitHub Actions
 
-El workflow corre cada 6 horas usando este cron:
+El workflow corre cada 12 horas usando este cron:
 
 ```txt
-17 */6 * * *
+0 0,12 * * *
 ```
 
-GitHub Actions usa UTC. El bot se ejecuta cada 6 horas, en el minuto 17.
+GitHub Actions usa UTC. Venezuela usa UTC-4, asi que el bot se ejecuta aproximadamente a las 8:00 a.m. y 8:00 p.m. hora Venezuela.
 
 ## Secrets Necesarios En GitHub
 
@@ -329,6 +329,8 @@ EMAIL_TO
 OPENAI_API_KEY
 MOM_EMAIL_TO
 MOM_CV_TEXT
+SISTER_EMAIL_TO
+SISTER_CV_TEXT
 ```
 
 Valores tipicos para Gmail:
@@ -344,6 +346,8 @@ EMAIL_TO = destino@gmail.com
 OPENAI_API_KEY = sk-...
 MOM_EMAIL_TO = correo-de-tu-mama@gmail.com
 MOM_CV_TEXT = Yuly Maribel Delgado Rodriguez. Licenciada en Enfermeria...
+SISTER_EMAIL_TO = correo-de-tu-hermana@gmail.com
+SISTER_CV_TEXT = Yuliana Alvarez. Ayudante de pasteleria y panaderia...
 ```
 
 Secret opcional para buscar tambien en Google Jobs, LinkedIn, Indeed y job boards de empresas via SerpApi:
@@ -383,6 +387,17 @@ MOM_AI_MAX_CANDIDATES
 MOM_SERPAPI_RUN_EVERY_HOURS
 MOM_SERPAPI_MAX_QUERIES_PER_RUN
 MOM_SERPAPI_QUERIES
+ENABLE_SISTER_BAKERY_PROFILE
+SISTER_PROFILE_NAME
+SISTER_SUBJECT_PREFIX
+SISTER_LOCATION
+SISTER_MIN_COMPATIBILITY_SCORE
+SISTER_LOOKBACK_DAYS
+SISTER_MAX_JOBS_PER_EMAIL
+SISTER_AI_MAX_CANDIDATES
+SISTER_SERPAPI_RUN_EVERY_HOURS
+SISTER_SERPAPI_MAX_QUERIES_PER_RUN
+SISTER_SERPAPI_QUERIES
 ```
 
 Si no configuras estas variables opcionales, el workflow usa valores por defecto.
@@ -392,6 +407,10 @@ Si no configuras estas variables opcionales, el workflow usa valores por defecto
 Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
 
 Este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo si quieres que busque esas ofertas.
+
+### Perfil Opcional: Pasteleria/Panaderia Caracas
+
+Si `ENABLE_SISTER_BAKERY_PROFILE=true`, el workflow ejecuta un tercer perfil para Yuliana Alvarez. Ese perfil busca ofertas en Caracas relacionadas con panaderia, pasteleria, reposteria, bomboneria, chocolateria, merengues y decoracion de tortas. Usa IA laxa para explicar `Por que matchea` y `Dudas/Riesgos`, pero descarta cocina general, ayudante de cocina, cocina salada, restaurante general, ventas, caja, barista y cargos fuera de panaderia/pasteleria.
 
 ## Como Configurar Secrets En GitHub
 
@@ -414,10 +433,10 @@ Crea cada secret de la lista anterior, uno por uno.
 Despues de subir el proyecto:
 
 ```txt
-Actions -> Job alert every 6 hours -> Run workflow
+Actions -> Job alert every 12 hours -> Run workflow
 ```
 
-Si el workflow corre bien, despues queda automatico cada 6 horas.
+Si el workflow corre bien, despues queda automatico cada 12 horas.
 
 ## Tests Y Validacion
 
