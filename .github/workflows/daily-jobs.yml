@@ -1,8 +1,8 @@
-name: Job alert hourly
+name: Job alert every 6 hours
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -49,7 +49,7 @@ jobs:
           ENABLE_AI_MATCHING: ${{ vars.ENABLE_AI_MATCHING || 'true' }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           CV_URL: ${{ vars.CV_URL || 'https://oswaldo-virtual-cv.vercel.app/es' }}
-          AI_MAX_CANDIDATES: ${{ vars.AI_MAX_CANDIDATES || '30' }}
+          AI_MAX_CANDIDATES: ${{ vars.AI_MAX_CANDIDATES || '20' }}
           AI_MIN_COMPATIBILITY_SCORE: ${{ vars.AI_MIN_COMPATIBILITY_SCORE || '90' }}
           ENABLE_SERPAPI: ${{ vars.ENABLE_SERPAPI || 'false' }}
           SERPAPI_LOCATION: ${{ vars.SERPAPI_LOCATION || 'Miami, Florida, United States' }}
