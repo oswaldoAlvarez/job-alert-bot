@@ -1,4 +1,4 @@
-import { config, momNursingProfile, oswaldoProfile, sisterBakeryProfile } from "../config.js";
+import { config, nursingProfile, oswaldoProfile, bakeryProfile } from "../config.js";
 import { dedupeJobs, isRecent } from "../filters/normalize.js";
 import { evaluateJobsWithAi, getAiRejectionReasons, shouldSendAiMatchedJob } from "../services/aiMatcher.js";
 import { fetchCvText } from "../services/cv.js";
@@ -27,9 +27,9 @@ const resolveCvText = async (profile: JobProfile): Promise<string> => {
   throw new Error(`El perfil ${profile.name} requiere cvText o cvUrl para usar IA`);
 };
 
-const isMomNursingProfile = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
+const isNursingProfile = (profile: JobProfile): boolean => profile.id === "nursing-caracas";
 const shouldReadLandingPage = (profile: JobProfile): boolean =>
-  profile.id === "mom-nursing-caracas" || profile.id === "sister-bakery-caracas";
+  profile.id === "nursing-caracas" || profile.id === "bakery-caracas";
 const shouldVerifyFreshness = (profile: JobProfile): boolean => profile.sourceMode === "tech";
 const isTechProfile = (profile: JobProfile): boolean => profile.sourceMode === "tech";
 
@@ -43,8 +43,8 @@ const inferSeniority = (job: MatchedJob): string => {
 };
 
 const profileRoleLabel = (profile: JobProfile): string => {
-  if (profile.id === "mom-nursing-caracas") return "enfermeria";
-  if (profile.id === "sister-bakery-caracas") return "pasteleria/panaderia";
+  if (profile.id === "nursing-caracas") return "enfermeria";
+  if (profile.id === "bakery-caracas") return "pasteleria/panaderia";
   return "tech";
 };
 
@@ -75,7 +75,7 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: freshCandidateJobs, staleCount } = shouldVerifyFreshness(profile)
     ? await filterFreshJobsByLandingPage(candidateJobs, profile)
     : { jobs: candidateJobs, staleCount: 0 };
-  const { jobs: criticalFilteredJobs, rejectedCount: criticalRejectedCount } = isMomNursingProfile(profile)
+  const { jobs: criticalFilteredJobs, rejectedCount: criticalRejectedCount } = isNursingProfile(profile)
     ? filterNursingCriticalExclusions(freshCandidateJobs)
     : { jobs: freshCandidateJobs, rejectedCount: 0 };
   const unseenJobs = await keepUnseenJobs(rankJobs(criticalFilteredJobs), profile.id);
@@ -153,8 +153,8 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
 export const runJobAgent = async (): Promise<void> => {
   const profiles = [
     oswaldoProfile,
-    ...(config.mom.enabled ? [momNursingProfile] : []),
-    ...(config.sister.enabled ? [sisterBakeryProfile] : [])
+    ...(config.nursing.enabled ? [nursingProfile] : []),
+    ...(config.bakery.enabled ? [bakeryProfile] : [])
   ];
 
   for (const profile of profiles) {

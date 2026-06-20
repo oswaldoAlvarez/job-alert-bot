@@ -18,9 +18,9 @@ El objetivo es recibir oportunidades relevantes para varios perfiles sin revisar
 
 El proyecto contiene tres perfiles:
 
-- `Oswaldo React`: React, React Native, Next.js, frontend/mobile, remoto, LATAM/Europa, español o mercado hispanohablante.
-- `Yuly Enfermeria Caracas`: enfermería, cuidado de pacientes, enfermería domiciliaria y roles asistenciales en Caracas.
-- `Yuliana Pasteleria Panaderia Caracas`: panadería, pastelería, repostería, bombonería, decoración de tortas y roles afines en Caracas.
+- `React Frontend Profile`: React, React Native, Next.js, frontend/mobile, remoto, LATAM/Europa, español o mercado hispanohablante.
+- `Nursing Caracas Profile`: enfermería, cuidado de pacientes, enfermería domiciliaria y roles asistenciales en Caracas.
+- `Bakery Caracas Profile`: panadería, pastelería, repostería, bombonería, decoración de tortas y roles afines en Caracas.
 
 Cada perfil tiene sus propios filtros, búsqueda, email destino y criterios de IA.
 
@@ -52,14 +52,14 @@ npm run dev
 Ejecutar forzando búsqueda SerpApi para los tres perfiles:
 
 ```bash
-SERPAPI_RUN_EVERY_HOURS=0 MOM_SERPAPI_RUN_EVERY_HOURS=0 SISTER_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
+SERPAPI_RUN_EVERY_HOURS=0 NURSING_SERPAPI_RUN_EVERY_HOURS=0 BAKERY_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
 ```
 
 Reenviar desde cero en local:
 
 ```bash
-rm -f data/seen-jobs-oswaldo-react.json data/seen-jobs-mom-nursing-caracas.json data/seen-jobs-sister-bakery-caracas.json
-SERPAPI_RUN_EVERY_HOURS=0 MOM_SERPAPI_RUN_EVERY_HOURS=0 SISTER_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
+rm -f data/seen-jobs-react-frontend.json data/seen-jobs-nursing-caracas.json data/seen-jobs-bakery-caracas.json
+SERPAPI_RUN_EVERY_HOURS=0 NURSING_SERPAPI_RUN_EVERY_HOURS=0 BAKERY_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
 ```
 
 ## GitHub Actions
@@ -103,10 +103,10 @@ EMAIL_FROM
 EMAIL_TO
 OPENAI_API_KEY
 SERPAPI_API_KEY
-MOM_EMAIL_TO
-MOM_CV_TEXT
-SISTER_EMAIL_TO
-SISTER_CV_TEXT
+NURSING_EMAIL_TO
+NURSING_CV_TEXT
+BAKERY_EMAIL_TO
+BAKERY_CV_TEXT
 ```
 
 ## Variables Principales
@@ -129,8 +129,8 @@ SERPAPI_MONTHLY_LIMIT=220
 LOOKBACK_DAYS=60
 MAX_JOBS_PER_EMAIL=20
 SEND_EMPTY_DIGEST=true
-ENABLE_MOM_NURSING_PROFILE=true
-ENABLE_SISTER_BAKERY_PROFILE=true
+ENABLE_NURSING_PROFILE=true
+ENABLE_BAKERY_PROFILE=true
 EXTRA_RSS_FEEDS=
 ```
 
@@ -151,9 +151,9 @@ npm test         # Tests
 El bot guarda estado en `data/` para no reenviar ofertas repetidas:
 
 ```txt
-data/seen-jobs-oswaldo-react.json
-data/seen-jobs-mom-nursing-caracas.json
-data/seen-jobs-sister-bakery-caracas.json
+data/seen-jobs-react-frontend.json
+data/seen-jobs-nursing-caracas.json
+data/seen-jobs-bakery-caracas.json
 data/serpapi-usage.json
 ```
 

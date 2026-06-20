@@ -44,15 +44,15 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
-          MOM_EMAIL_TO: ${{ secrets.MOM_EMAIL_TO }}
-          MOM_CV_TEXT: ${{ secrets.MOM_CV_TEXT }}
-          SISTER_EMAIL_TO: ${{ secrets.SISTER_EMAIL_TO }}
-          SISTER_CV_TEXT: ${{ secrets.SISTER_CV_TEXT }}
+          NURSING_EMAIL_TO: ${{ secrets.NURSING_EMAIL_TO }}
+          NURSING_CV_TEXT: ${{ secrets.NURSING_CV_TEXT }}
+          BAKERY_EMAIL_TO: ${{ secrets.BAKERY_EMAIL_TO }}
+          BAKERY_CV_TEXT: ${{ secrets.BAKERY_CV_TEXT }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ENABLE_AI_MATCHING: ${{ vars.ENABLE_AI_MATCHING || 'true' }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
-          CV_URL: ${{ vars.CV_URL || 'https://oswaldo-virtual-cv.vercel.app/es' }}
+          CV_URL: ${{ vars.CV_URL || '' }}
           AI_MAX_CANDIDATES: ${{ vars.AI_MAX_CANDIDATES || '20' }}
           AI_MIN_COMPATIBILITY_SCORE: ${{ vars.AI_MIN_COMPATIBILITY_SCORE || '80' }}
           ENABLE_SERPAPI: ${{ vars.ENABLE_SERPAPI || 'false' }}
@@ -67,24 +67,24 @@ jobs:
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
           SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'true' }}
           EXTRA_RSS_FEEDS: ${{ vars.EXTRA_RSS_FEEDS || '' }}
-          ENABLE_MOM_NURSING_PROFILE: ${{ vars.ENABLE_MOM_NURSING_PROFILE || 'false' }}
-          MOM_PROFILE_NAME: ${{ vars.MOM_PROFILE_NAME || 'Yuly Enfermeria Caracas' }}
-          MOM_SUBJECT_PREFIX: ${{ vars.MOM_SUBJECT_PREFIX || 'Ofertas Enfermeria Caracas' }}
-          MOM_LOCATION: ${{ vars.MOM_LOCATION || '' }}
-          MOM_MIN_COMPATIBILITY_SCORE: ${{ vars.MOM_MIN_COMPATIBILITY_SCORE || '0' }}
-          MOM_LOOKBACK_DAYS: ${{ vars.MOM_LOOKBACK_DAYS || '7' }}
-          MOM_MAX_JOBS_PER_EMAIL: ${{ vars.MOM_MAX_JOBS_PER_EMAIL || '20' }}
-          MOM_AI_MAX_CANDIDATES: ${{ vars.MOM_AI_MAX_CANDIDATES || '20' }}
-          MOM_SERPAPI_RUN_EVERY_HOURS: ${{ vars.MOM_SERPAPI_RUN_EVERY_HOURS || '12' }}
-          MOM_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.MOM_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
-          MOM_SERPAPI_QUERIES: ${{ vars.MOM_SERPAPI_QUERIES || '' }}
-          ENABLE_SISTER_BAKERY_PROFILE: ${{ vars.ENABLE_SISTER_BAKERY_PROFILE || 'false' }}
-          SISTER_PROFILE_NAME: ${{ vars.SISTER_PROFILE_NAME || 'Yuliana Pasteleria Panaderia Caracas' }}
-          SISTER_SUBJECT_PREFIX: ${{ vars.SISTER_SUBJECT_PREFIX || 'Ofertas Pasteleria Panaderia Caracas' }}
-          SISTER_LOCATION: ${{ vars.SISTER_LOCATION || '' }}
-          SISTER_MIN_COMPATIBILITY_SCORE: ${{ vars.SISTER_MIN_COMPATIBILITY_SCORE || '0' }}
-          SISTER_MAX_JOBS_PER_EMAIL: ${{ vars.SISTER_MAX_JOBS_PER_EMAIL || '20' }}
-          SISTER_AI_MAX_CANDIDATES: ${{ vars.SISTER_AI_MAX_CANDIDATES || '20' }}
-          SISTER_SERPAPI_RUN_EVERY_HOURS: ${{ vars.SISTER_SERPAPI_RUN_EVERY_HOURS || '12' }}
-          SISTER_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SISTER_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
-          SISTER_SERPAPI_QUERIES: ${{ vars.SISTER_SERPAPI_QUERIES || '' }}
+          ENABLE_NURSING_PROFILE: ${{ vars.ENABLE_NURSING_PROFILE || 'false' }}
+          NURSING_PROFILE_NAME: ${{ vars.NURSING_PROFILE_NAME || 'Perfil Enfermeria Caracas' }}
+          NURSING_SUBJECT_PREFIX: ${{ vars.NURSING_SUBJECT_PREFIX || 'Ofertas Enfermeria Caracas' }}
+          NURSING_LOCATION: ${{ vars.NURSING_LOCATION || '' }}
+          NURSING_MIN_COMPATIBILITY_SCORE: ${{ vars.NURSING_MIN_COMPATIBILITY_SCORE || '0' }}
+          NURSING_LOOKBACK_DAYS: ${{ vars.NURSING_LOOKBACK_DAYS || '7' }}
+          NURSING_MAX_JOBS_PER_EMAIL: ${{ vars.NURSING_MAX_JOBS_PER_EMAIL || '20' }}
+          NURSING_AI_MAX_CANDIDATES: ${{ vars.NURSING_AI_MAX_CANDIDATES || '20' }}
+          NURSING_SERPAPI_RUN_EVERY_HOURS: ${{ vars.NURSING_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          NURSING_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.NURSING_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
+          NURSING_SERPAPI_QUERIES: ${{ vars.NURSING_SERPAPI_QUERIES || '' }}
+          ENABLE_BAKERY_PROFILE: ${{ vars.ENABLE_BAKERY_PROFILE || 'false' }}
+          BAKERY_PROFILE_NAME: ${{ vars.BAKERY_PROFILE_NAME || 'Perfil Pasteleria Panaderia Caracas' }}
+          BAKERY_SUBJECT_PREFIX: ${{ vars.BAKERY_SUBJECT_PREFIX || 'Ofertas Pasteleria Panaderia Caracas' }}
+          BAKERY_LOCATION: ${{ vars.BAKERY_LOCATION || '' }}
+          BAKERY_MIN_COMPATIBILITY_SCORE: ${{ vars.BAKERY_MIN_COMPATIBILITY_SCORE || '0' }}
+          BAKERY_MAX_JOBS_PER_EMAIL: ${{ vars.BAKERY_MAX_JOBS_PER_EMAIL || '20' }}
+          BAKERY_AI_MAX_CANDIDATES: ${{ vars.BAKERY_AI_MAX_CANDIDATES || '20' }}
+          BAKERY_SERPAPI_RUN_EVERY_HOURS: ${{ vars.BAKERY_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          BAKERY_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.BAKERY_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
+          BAKERY_SERPAPI_QUERIES: ${{ vars.BAKERY_SERPAPI_QUERIES || '' }}

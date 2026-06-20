@@ -13,7 +13,7 @@ const readSeenIds = async (profileId?: string): Promise<Set<string>> => {
     const parsed = JSON.parse(raw) as string[];
     return new Set(parsed);
   } catch {
-    if (!profileId || profileId === "default" || profileId === "oswaldo-react") {
+    if (!profileId || profileId === "default" || profileId === "react-frontend") {
       try {
         const raw = await readFile(legacyStateFile, "utf8");
         const parsed = JSON.parse(raw) as string[];

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { preselectJobCandidate } from "../src/agent/preselectJobs.js";
-import { momNursingProfile, sisterBakeryProfile } from "../src/config.js";
+import { bakeryProfile, nursingProfile } from "../src/config.js";
 import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
 import { extractVisiblePageDate } from "../src/services/freshness.js";
-import { filterNursingCriticalExclusions, isAgeCompatibleForYuly } from "../src/services/nursingFilters.js";
+import { filterNursingCriticalExclusions, isAgeCompatibleForNursingProfile } from "../src/services/nursingFilters.js";
 import type { JobPosting, MatchedJob } from "../src/types.js";
 
 const baseJob: JobPosting = {
@@ -68,7 +68,7 @@ describe("preselectJobCandidate", () => {
     expect(result).toBeUndefined();
   });
 
-  it("preselecciona enfermeria domiciliaria y cuidado de pacientes para el perfil de Yuly", () => {
+  it("preselecciona enfermeria domiciliaria y cuidado de pacientes para el perfil de enfermeria", () => {
     const result = preselectJobCandidate(
       {
         ...baseJob,
@@ -77,13 +77,13 @@ describe("preselectJobCandidate", () => {
         description:
           "Se solicita licenciada en enfermeria para cuidado de heridas, administracion de tratamiento, bano en cama y alimentacion por sonda."
       },
-      momNursingProfile
+      nursingProfile
     );
 
     expect(result).toBeDefined();
   });
 
-  it("rechaza ventas medicas para el perfil de Yuly", () => {
+  it("rechaza ventas medicas para el perfil de enfermeria", () => {
     const result = preselectJobCandidate(
       {
         ...baseJob,
@@ -91,7 +91,7 @@ describe("preselectJobCandidate", () => {
         location: "Caracas",
         description: "Ventas de insumos medicos y atencion comercial a clientes."
       },
-      momNursingProfile
+      nursingProfile
     );
 
     expect(result).toBeUndefined();
@@ -265,7 +265,7 @@ describe("shouldSendAiMatchedJob", () => {
     expect(shouldSend).toBe(true);
   });
 
-  it("acepta ofertas presenciales de enfermeria para el perfil de Yuly", () => {
+  it("acepta ofertas presenciales de enfermeria para el perfil de enfermeria", () => {
     const shouldSend = shouldSendAiMatchedJob(
       {
         ...baseJob,
@@ -286,13 +286,13 @@ describe("shouldSendAiMatchedJob", () => {
           spanishFit: "spanish_offer"
         }
       } as MatchedJob,
-      momNursingProfile
+      nursingProfile
     );
 
     expect(shouldSend).toBe(true);
   });
 
-  it("acepta ofertas revisar de enfermeria para el perfil de Yuly", () => {
+  it("acepta ofertas revisar de enfermeria para el perfil de enfermeria", () => {
     const shouldSend = shouldSendAiMatchedJob(
       {
         ...baseJob,
@@ -314,13 +314,13 @@ describe("shouldSendAiMatchedJob", () => {
           spanishFit: "not_specified"
         }
       } as MatchedJob,
-      momNursingProfile
+      nursingProfile
     );
 
     expect(shouldSend).toBe(true);
   });
 
-  it("acepta ofertas revisar de pasteleria para el perfil de Yuliana", () => {
+  it("acepta ofertas revisar de pasteleria para el perfil de panaderia", () => {
     const shouldSend = shouldSendAiMatchedJob(
       {
         ...baseJob,
@@ -342,13 +342,13 @@ describe("shouldSendAiMatchedJob", () => {
           spanishFit: "not_specified"
         }
       } as MatchedJob,
-      sisterBakeryProfile
+      bakeryProfile
     );
 
     expect(shouldSend).toBe(true);
   });
 
-  it("no bloquea ofertas de pasteleria de Yuliana por clasificacion IA estricta", () => {
+  it("no bloquea ofertas de pasteleria del perfil de panaderia por clasificacion IA estricta", () => {
     const shouldSend = shouldSendAiMatchedJob(
       {
         ...baseJob,
@@ -371,7 +371,7 @@ describe("shouldSendAiMatchedJob", () => {
           spanishFit: "not_specified"
         }
       } as MatchedJob,
-      sisterBakeryProfile
+      bakeryProfile
     );
 
     expect(shouldSend).toBe(true);
@@ -392,11 +392,11 @@ describe("extractVisiblePageDate", () => {
   });
 });
 
-describe("momNursingProfile", () => {
+describe("nursingProfile", () => {
   it("esta configurado como fuente directa sin IA", () => {
-    expect(momNursingProfile.id).toBe("mom-nursing-caracas");
-    expect(momNursingProfile.sourceMode).toBe("serpapi_only");
-    expect(momNursingProfile.maxJobsPerEmail).toBeGreaterThan(0);
+    expect(nursingProfile.id).toBe("nursing-caracas");
+    expect(nursingProfile.sourceMode).toBe("serpapi_only");
+    expect(nursingProfile.maxJobsPerEmail).toBeGreaterThan(0);
   });
 });
 
@@ -413,8 +413,8 @@ describe("filterNursingCriticalExclusions", () => {
     ]);
 
     expect(jobs).toHaveLength(0);
-    expect(isAgeCompatibleForYuly("Edad mayor de 25 años")).toBe(true);
-    expect(isAgeCompatibleForYuly("Edad hasta 45 años")).toBe(false);
+    expect(isAgeCompatibleForNursingProfile("Edad mayor de 25 años")).toBe(true);
+    expect(isAgeCompatibleForNursingProfile("Edad hasta 45 años")).toBe(false);
   });
 
   it("descarta emergencias ambulancia y terapia intensiva", () => {

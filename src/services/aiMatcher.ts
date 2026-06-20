@@ -300,7 +300,7 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
   if (!evaluation) return true;
 
   const guardrails = profile?.sendGuardrails;
-  const isSisterBakeryProfile = profile?.id === "sister-bakery-caracas";
+  const isBakeryProfile = profile?.id === "bakery-caracas";
   const minScore = profile?.aiMinCompatibilityScore ?? config.aiMinCompatibilityScore;
   const acceptedEnglish = (guardrails?.acceptedEnglishRequirements ?? ["none", "not_specified", "b1", "b2"]).includes(
     evaluation.englishRequirement
@@ -309,7 +309,7 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
     evaluation.remoteScope
   );
   const acceptedRole =
-    isSisterBakeryProfile ||
+    isBakeryProfile ||
     (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(evaluation.roleFocus);
   const acceptedSpanish = guardrails?.requireSpanishSignal === false
     ? true
@@ -324,9 +324,9 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
   const acceptedBackend = guardrails?.rejectHighBackend === false ? true : evaluation.backendWeight !== "alto";
 
   const acceptsReviewRecommendation =
-    profile?.id === "mom-nursing-caracas" || profile?.id === "sister-bakery-caracas";
+    profile?.id === "nursing-caracas" || profile?.id === "bakery-caracas";
   const acceptedRecommendation =
-    isSisterBakeryProfile
+    isBakeryProfile
       ? true
       : acceptsReviewRecommendation
       ? ["aplicar", "revisar"].includes(evaluation.recommendation)
@@ -352,9 +352,9 @@ export const getAiRejectionReasons = (job: MatchedJob, profile?: JobProfile): st
   const minScore = profile?.aiMinCompatibilityScore ?? config.aiMinCompatibilityScore;
   const reasons: string[] = [];
 
-  if (profile?.id === "mom-nursing-caracas" && evaluation.recommendation === "descartar") {
+  if (profile?.id === "nursing-caracas" && evaluation.recommendation === "descartar") {
     reasons.push("IA recomendo descartar");
-  } else if (profile?.id !== "sister-bakery-caracas" && evaluation.recommendation !== "aplicar") {
+  } else if (profile?.id !== "bakery-caracas" && evaluation.recommendation !== "aplicar") {
     reasons.push(`recomendacion IA ${evaluation.recommendation}`);
   }
 
@@ -382,7 +382,7 @@ export const getAiRejectionReasons = (job: MatchedJob, profile?: JobProfile): st
   if (!acceptedRemote) reasons.push(`alcance remoto ${evaluation.remoteScope}`);
 
   const acceptedRole =
-    profile?.id === "sister-bakery-caracas" ||
+    profile?.id === "bakery-caracas" ||
     (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(evaluation.roleFocus);
   if (!acceptedRole) reasons.push(`rol IA ${evaluation.roleFocus}`);
 

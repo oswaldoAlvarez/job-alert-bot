@@ -1,7 +1,7 @@
 import { normalizeText } from "../filters/normalize.js";
 import type { MatchedJob } from "../types.js";
 
-const momAge = 59;
+const nursingProfileAge = 59;
 
 const blockedCriticalTerms = [
   "emergencia",
@@ -89,7 +89,7 @@ const rejectionReason = (job: MatchedJob): string | undefined => {
   if (blockedNonNursing) return `fuera de enfermeria asistencial: ${blockedNonNursing}`;
 
   const maxAge = maxAgeFromText(text);
-  if (maxAge !== undefined && maxAge < momAge) return `edad maxima incompatible (${maxAge})`;
+  if (maxAge !== undefined && maxAge < nursingProfileAge) return `edad maxima incompatible (${maxAge})`;
 
   return undefined;
 };
@@ -114,7 +114,7 @@ export const filterNursingCriticalExclusions = (
   return { jobs: filtered, rejectedCount };
 };
 
-export const isAgeCompatibleForYuly = (text: string): boolean => {
+export const isAgeCompatibleForNursingProfile = (text: string): boolean => {
   const maxAge = maxAgeFromText(normalizeText(text));
-  return maxAge === undefined || maxAge >= momAge;
+  return maxAge === undefined || maxAge >= nursingProfileAge;
 };

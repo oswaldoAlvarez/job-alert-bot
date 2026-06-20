@@ -30,7 +30,7 @@ export const config = {
   enableAiMatching: booleanFromEnv("ENABLE_AI_MATCHING", Boolean(process.env.OPENAI_API_KEY)),
   openAiApiKey: process.env.OPENAI_API_KEY,
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-5-mini",
-  cvUrl: process.env.CV_URL ?? "https://oswaldo-virtual-cv.vercel.app/es",
+  cvUrl: process.env.CV_URL,
   serpApiKey: process.env.SERPAPI_API_KEY,
   enableSerpApi: booleanFromEnv("ENABLE_SERPAPI", Boolean(process.env.SERPAPI_API_KEY)),
   serpApiLocation: process.env.SERPAPI_LOCATION ?? "Miami, Florida, United States",
@@ -311,41 +311,41 @@ export const config = {
     "english proficiency",
     "excellent english"
   ],
-  mom: {
-    enabled: booleanFromEnv("ENABLE_MOM_NURSING_PROFILE", false),
-    emailTo: process.env.MOM_EMAIL_TO,
-    cvText: process.env.MOM_CV_TEXT,
-    profileName: process.env.MOM_PROFILE_NAME ?? "Yuly Enfermeria Caracas",
-    subjectPrefix: process.env.MOM_SUBJECT_PREFIX ?? "Ofertas Enfermeria Caracas",
-    location: process.env.MOM_LOCATION,
-    minCompatibilityScore: numberFromEnv("MOM_MIN_COMPATIBILITY_SCORE", 0),
-    lookbackDays: numberFromEnv("MOM_LOOKBACK_DAYS", 7),
-    maxJobsPerEmail: numberFromEnv("MOM_MAX_JOBS_PER_EMAIL", 20),
-    aiMaxCandidates: numberFromEnv("MOM_AI_MAX_CANDIDATES", 20),
-    serpApiQueries: listFromEnv("MOM_SERPAPI_QUERIES", "|"),
-    serpApiRunEveryHours: numberFromEnv("MOM_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
-    serpApiMaxQueriesPerRun: numberFromEnv("MOM_SERPAPI_MAX_QUERIES_PER_RUN", 1)
+  nursing: {
+    enabled: booleanFromEnv("ENABLE_NURSING_PROFILE", false),
+    emailTo: process.env.NURSING_EMAIL_TO,
+    cvText: process.env.NURSING_CV_TEXT,
+    profileName: process.env.NURSING_PROFILE_NAME ?? "Perfil Enfermeria Caracas",
+    subjectPrefix: process.env.NURSING_SUBJECT_PREFIX ?? "Ofertas Enfermeria Caracas",
+    location: process.env.NURSING_LOCATION,
+    minCompatibilityScore: numberFromEnv("NURSING_MIN_COMPATIBILITY_SCORE", 0),
+    lookbackDays: numberFromEnv("NURSING_LOOKBACK_DAYS", 7),
+    maxJobsPerEmail: numberFromEnv("NURSING_MAX_JOBS_PER_EMAIL", 20),
+    aiMaxCandidates: numberFromEnv("NURSING_AI_MAX_CANDIDATES", 20),
+    serpApiQueries: listFromEnv("NURSING_SERPAPI_QUERIES", "|"),
+    serpApiRunEveryHours: numberFromEnv("NURSING_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiMaxQueriesPerRun: numberFromEnv("NURSING_SERPAPI_MAX_QUERIES_PER_RUN", 1)
   },
-  sister: {
-    enabled: booleanFromEnv("ENABLE_SISTER_BAKERY_PROFILE", false),
-    emailTo: process.env.SISTER_EMAIL_TO,
-    cvText: process.env.SISTER_CV_TEXT,
-    profileName: process.env.SISTER_PROFILE_NAME ?? "Pasteleria Panaderia Caracas",
-    subjectPrefix: process.env.SISTER_SUBJECT_PREFIX ?? "Ofertas Pasteleria Panaderia Caracas",
-    location: process.env.SISTER_LOCATION,
-    minCompatibilityScore: numberFromEnv("SISTER_MIN_COMPATIBILITY_SCORE", 0),
+  bakery: {
+    enabled: booleanFromEnv("ENABLE_BAKERY_PROFILE", false),
+    emailTo: process.env.BAKERY_EMAIL_TO,
+    cvText: process.env.BAKERY_CV_TEXT,
+    profileName: process.env.BAKERY_PROFILE_NAME ?? "Pasteleria Panaderia Caracas",
+    subjectPrefix: process.env.BAKERY_SUBJECT_PREFIX ?? "Ofertas Pasteleria Panaderia Caracas",
+    location: process.env.BAKERY_LOCATION,
+    minCompatibilityScore: numberFromEnv("BAKERY_MIN_COMPATIBILITY_SCORE", 0),
     lookbackDays: 7,
-    maxJobsPerEmail: numberFromEnv("SISTER_MAX_JOBS_PER_EMAIL", 20),
-    aiMaxCandidates: numberFromEnv("SISTER_AI_MAX_CANDIDATES", 20),
-    serpApiQueries: listFromEnv("SISTER_SERPAPI_QUERIES", "|"),
-    serpApiRunEveryHours: numberFromEnv("SISTER_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
-    serpApiMaxQueriesPerRun: numberFromEnv("SISTER_SERPAPI_MAX_QUERIES_PER_RUN", 1)
+    maxJobsPerEmail: numberFromEnv("BAKERY_MAX_JOBS_PER_EMAIL", 20),
+    aiMaxCandidates: numberFromEnv("BAKERY_AI_MAX_CANDIDATES", 20),
+    serpApiQueries: listFromEnv("BAKERY_SERPAPI_QUERIES", "|"),
+    serpApiRunEveryHours: numberFromEnv("BAKERY_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiMaxQueriesPerRun: numberFromEnv("BAKERY_SERPAPI_MAX_QUERIES_PER_RUN", 1)
   }
 };
 
 export const oswaldoProfile: JobProfile = {
-  id: "oswaldo-react",
-  name: "Oswaldo React",
+  id: "react-frontend",
+  name: "React Frontend Profile",
   subjectPrefix: "Ofertas React/React Native SSR-SR",
   emailTo: config.smtp.to,
   cvUrl: config.cvUrl,
@@ -387,7 +387,7 @@ export const oswaldoProfile: JobProfile = {
   }
 };
 
-const momDefaultQueries = [
+const nursingDefaultQueries = [
   "enfermera Caracas Venezuela",
   "licenciada en enfermeria Caracas",
   "enfermera profesional Caracas",
@@ -410,7 +410,7 @@ const momDefaultQueries = [
   "enfermero Caracas Distrito Capital"
 ];
 
-const sisterDefaultQueries = [
+const bakeryDefaultQueries = [
   "pastelera Caracas Venezuela",
   "panadera Caracas Venezuela",
   "repostera Caracas Venezuela",
@@ -423,21 +423,21 @@ const sisterDefaultQueries = [
   "panaderia pasteleria Caracas empleo"
 ];
 
-export const momNursingProfile: JobProfile = {
-  id: "mom-nursing-caracas",
-  name: config.mom.profileName,
-  subjectPrefix: config.mom.subjectPrefix,
-  emailTo: config.mom.emailTo,
-  cvText: config.mom.cvText,
-  lookbackDays: config.mom.lookbackDays,
-  maxJobsPerEmail: config.mom.maxJobsPerEmail,
-  aiMaxCandidates: config.mom.aiMaxCandidates,
-  aiMinCompatibilityScore: config.mom.minCompatibilityScore,
+export const nursingProfile: JobProfile = {
+  id: "nursing-caracas",
+  name: config.nursing.profileName,
+  subjectPrefix: config.nursing.subjectPrefix,
+  emailTo: config.nursing.emailTo,
+  cvText: config.nursing.cvText,
+  lookbackDays: config.nursing.lookbackDays,
+  maxJobsPerEmail: config.nursing.maxJobsPerEmail,
+  aiMaxCandidates: config.nursing.aiMaxCandidates,
+  aiMinCompatibilityScore: config.nursing.minCompatibilityScore,
   sourceMode: "serpapi_only",
-  serpApiQueries: config.mom.serpApiQueries.length > 0 ? config.mom.serpApiQueries : momDefaultQueries,
-  serpApiLocation: config.mom.location,
-  serpApiRunEveryHours: config.mom.serpApiRunEveryHours,
-  serpApiMaxQueriesPerRun: config.mom.serpApiMaxQueriesPerRun,
+  serpApiQueries: config.nursing.serpApiQueries.length > 0 ? config.nursing.serpApiQueries : nursingDefaultQueries,
+  serpApiLocation: config.nursing.location,
+  serpApiRunEveryHours: config.nursing.serpApiRunEveryHours,
+  serpApiMaxQueriesPerRun: config.nursing.serpApiMaxQueriesPerRun,
   requiredTerms: ["enfermera", "enfermero", "enfermeria", "enfermería", "nursing", "nurse"],
   optionalTerms: [
     "licenciada en enfermeria",
@@ -532,14 +532,14 @@ export const momNursingProfile: JobProfile = {
     "covid"
   ],
   promptPreferences: [
-    "Perfil objetivo: Yuly Maribel Delgado Rodriguez, licenciada en enfermeria ubicada en Caracas, Venezuela.",
-    "Experiencia en Clinica Santa Sofia, Clinica Metropolitana, Centro Medico Clinico Loira y Hospital Militar Carlos Arvelo.",
+    "Perfil objetivo: profesional de enfermeria ubicada en Caracas, Venezuela.",
+    "Experiencia en clinicas, hospitales, centro medico, enfermeria clinica y atencion de pacientes.",
     "Experiencia en enfermeria clinica, cardiologia, cuidados intensivos y oncologia.",
     "Buscar ofertas presenciales o por turnos en Caracas/Distrito Capital para cualquier trabajo relacionado con enfermeria, cuidado de pacientes, salud asistencial, clinicas, hospitales, centro medico o enfermeria a domicilio.",
     "Incluir especialmente ofertas de cuidado de pacientes medicos, pacientes con enfermedades, pacientes postoperatorios/post-operatorios, recuperacion, hospitalizacion, cuidados a domicilio, oncologia y seguimiento de tratamientos.",
     "Priorizar especialmente enfermeria domiciliaria: administracion de tratamiento, bano en cama, alimentacion por sonda, cuidado/curacion de heridas, atencion de adulto mayor, cuidados propios de enfermeria, pacientes COVID o pacientes respiratorios.",
-    "Ser laxo: enviar casi toda oferta que Yuly pueda trabajar si esta relacionada con enfermeria o cuidado de pacientes. No exigir match perfecto ni seniority exacto.",
-    "Yuly tiene 59 anos. Descartar si la oferta indica edad maxima menor a 59 o un rango de edad que no incluya 59. Si no menciona edad, puede pasar y debe anotarse como duda/riesgo.",
+    "Ser laxo: enviar casi toda oferta que el perfil pueda trabajar si esta relacionada con enfermeria o cuidado de pacientes. No exigir match perfecto ni seniority exacto.",
+    "El perfil tiene 59 anos. Descartar si la oferta indica edad maxima menor a 59 o un rango de edad que no incluya 59. Si no menciona edad, puede pasar y debe anotarse como duda/riesgo.",
     "Priorizar Caracas, Distrito Capital o zonas razonables de Caracas. Descartar ofertas fuera de Venezuela o que exijan mudarse lejos.",
     "Descartar siempre ventas, comercial, representante, promotor, marketing, call center, administracion, recepcion, farmacia sin enfermeria, medico, odontologo, laboratorio sin funcion de enfermeria o cargos no asistenciales.",
     "Descartar siempre emergencias, areas criticas, ambulancia, paramedico, terapia intensiva, UCI, trauma, triaje, soporte vital, rescate o traslados criticos.",
@@ -558,23 +558,23 @@ export const momNursingProfile: JobProfile = {
   }
 };
 
-export const sisterBakeryProfile: JobProfile = {
-  id: "sister-bakery-caracas",
-  name: config.sister.profileName,
-  subjectPrefix: config.sister.subjectPrefix,
-  emailTo: config.sister.emailTo,
+export const bakeryProfile: JobProfile = {
+  id: "bakery-caracas",
+  name: config.bakery.profileName,
+  subjectPrefix: config.bakery.subjectPrefix,
+  emailTo: config.bakery.emailTo,
   cvText:
-    config.sister.cvText ??
-    "Yuliana Alvarez. Ayudante de pasteleria y panaderia en Caracas, Venezuela. Pastelera y panadera profesional con formacion tecnica y 2 anos de experiencia liderando produccion independiente. Experiencia en elaboracion artesanal de pasteleria y panaderia, control de calidad, mise en place, organizacion de recetas, higiene, presentacion de productos y adaptacion a cocinas comerciales. Conocimientos: masas quebradas, batidos, merengues, hojaldre, chocolate y decoracion de tortas. Estudios: Escuela de gastronomia Mariano Moreno, panaderia y pasteleria 2024-2025. Busca ofertas en panaderia, pasteleria, reposteria, bomboneria, chocolateria, decoracion de tortas o produccion dulce. No busca ayudante de cocina, cocina general, cocina salada, chef de cocina, restaurante general ni cargos fuera de panaderia/pasteleria.",
-  lookbackDays: config.sister.lookbackDays,
-  maxJobsPerEmail: config.sister.maxJobsPerEmail,
-  aiMaxCandidates: config.sister.aiMaxCandidates,
-  aiMinCompatibilityScore: config.sister.minCompatibilityScore,
+    config.bakery.cvText ??
+    "Perfil de ayudante de pasteleria y panaderia en Caracas, Venezuela. Pastelera y panadera con formacion tecnica y experiencia liderando produccion independiente. Experiencia en elaboracion artesanal de pasteleria y panaderia, control de calidad, mise en place, organizacion de recetas, higiene, presentacion de productos y adaptacion a cocinas comerciales. Conocimientos: masas quebradas, batidos, merengues, hojaldre, chocolate y decoracion de tortas. Busca ofertas en panaderia, pasteleria, reposteria, bomboneria, chocolateria, decoracion de tortas o produccion dulce. No busca ayudante de cocina, cocina general, cocina salada, chef de cocina, restaurante general ni cargos fuera de panaderia/pasteleria.",
+  lookbackDays: config.bakery.lookbackDays,
+  maxJobsPerEmail: config.bakery.maxJobsPerEmail,
+  aiMaxCandidates: config.bakery.aiMaxCandidates,
+  aiMinCompatibilityScore: config.bakery.minCompatibilityScore,
   sourceMode: "serpapi_only",
-  serpApiQueries: config.sister.serpApiQueries.length > 0 ? config.sister.serpApiQueries : sisterDefaultQueries,
-  serpApiLocation: config.sister.location,
-  serpApiRunEveryHours: config.sister.serpApiRunEveryHours,
-  serpApiMaxQueriesPerRun: config.sister.serpApiMaxQueriesPerRun,
+  serpApiQueries: config.bakery.serpApiQueries.length > 0 ? config.bakery.serpApiQueries : bakeryDefaultQueries,
+  serpApiLocation: config.bakery.location,
+  serpApiRunEveryHours: config.bakery.serpApiRunEveryHours,
+  serpApiMaxQueriesPerRun: config.bakery.serpApiMaxQueriesPerRun,
   requiredTerms: [
     "pastelera",
     "pastelero",
@@ -657,7 +657,7 @@ export const sisterBakeryProfile: JobProfile = {
     "chocolate"
   ],
   promptPreferences: [
-    "Perfil objetivo: Yuliana Alvarez, ayudante de pasteleria y panaderia en Caracas, Venezuela.",
+    "Perfil objetivo: ayudante de pasteleria y panaderia en Caracas, Venezuela.",
     "Experiencia aproximada: 2 anos liderando produccion independiente y formacion en panaderia/pasteleria. No exigir experiencia senior.",
     "Especialidades: bomboneria, merengues, decoracion de tortas, chocolate, hojaldre, masas quebradas, batidos, panaderia y pasteleria.",
     "Enviar ofertas relacionadas con pasteleria, panaderia, reposteria, bomboneria, chocolateria, decoracion de tortas, produccion dulce, postres o panificacion.",
