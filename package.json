@@ -1,0 +1,26 @@
+{
+  "name": "job-alert-bot",
+  "version": "0.1.0",
+  "description": "Bot diario para buscar ofertas SSR/SR de React y React Native en espanol y enviarlas por email.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "fast-xml-parser": "^5.9.3",
+    "nodemailer": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/nodemailer": "^8.0.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.9"
+  }
+}

@@ -1,0 +1,53 @@
+name: Job alert every 2 hours
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore sent jobs state
+        uses: actions/cache@v4
+        with:
+          path: data/seen-jobs.json
+          key: seen-jobs-${{ github.run_id }}
+          restore-keys: |
+            seen-jobs-
+
+      - name: Build
+        run: npm run build
+
+      - name: Send email digest
+        run: npm start
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '3' }}
+          MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
+          SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'false' }}
+          REQUIRE_SPANISH_SIGNAL: ${{ vars.REQUIRE_SPANISH_SIGNAL || 'true' }}
+          REQUIRE_REGION_SIGNAL: ${{ vars.REQUIRE_REGION_SIGNAL || 'true' }}
+          REQUIRE_REMOTE_OR_CONTRACT_SIGNAL: ${{ vars.REQUIRE_REMOTE_OR_CONTRACT_SIGNAL || 'true' }}
+          REQUIRE_EUROPE_SPANISH_OR_B2_ENGLISH: ${{ vars.REQUIRE_EUROPE_SPANISH_OR_B2_ENGLISH || 'true' }}
+          EXTRA_RSS_FEEDS: ${{ vars.EXTRA_RSS_FEEDS || '' }}
