@@ -14,27 +14,6 @@ export type SourceResult = {
 };
 
 export const fetchAllJobs = async (profile?: JobProfile): Promise<SourceResult> => {
-  if (profile?.sourceMode === "serpapi_only") {
-    if (!config.enableSerpApi) {
-      return { jobs: [], stats: ["Google Jobs / LinkedIn / Job boards: omitido porque ENABLE_SERPAPI=false"] };
-    }
-
-    try {
-      const jobs = await fetchSerpApiJobs({
-        profileId: profile.id,
-        queries: profile.serpApiQueries,
-        location: profile.serpApiLocation,
-        runEveryHours: profile.serpApiRunEveryHours,
-        maxQueriesPerRun: profile.serpApiMaxQueriesPerRun
-      });
-
-      return { jobs, stats: [`Google Jobs / LinkedIn / Job boards: ${jobs.length} ofertas recibidas`] };
-    } catch (error) {
-      console.warn(`Fuente fallida: Google Jobs / LinkedIn / Job boards. ${error}`);
-      return { jobs: [], stats: [`Google Jobs / LinkedIn / Job boards: fallo (${error})`] };
-    }
-  }
-
   const rssFeeds = [...config.defaultRssFeeds, ...config.extraRssFeeds];
   const sourceCalls = [
     { name: "Remotive", run: fetchRemotiveJobs },
@@ -43,7 +22,25 @@ export const fetchAllJobs = async (profile?: JobProfile): Promise<SourceResult> 
     { name: "Get on Board", run: fetchGetOnBoardJobs },
     { name: "Arbeitnow", run: fetchArbeitnowJobs },
     ...(rssFeeds.length > 0 ? [{ name: "RSS feeds", run: () => fetchRssJobs(rssFeeds) }] : []),
-    ...(config.enableSerpApi ? [{ name: "Google Jobs / LinkedIn / Job boards", run: fetchSerpApiJobs }] : [])
+    ...(config.enableSerpApi
+      ? [
+          {
+            name: "Google Jobs / LinkedIn / Job boards",
+            run: () =>
+              fetchSerpApiJobs(
+                profile
+                  ? {
+                      profileId: profile.id,
+                      queries: profile.serpApiQueries,
+                      location: profile.serpApiLocation,
+                      runEveryHours: profile.serpApiRunEveryHours,
+                      maxQueriesPerRun: profile.serpApiMaxQueriesPerRun
+                    }
+                  : undefined
+              )
+          }
+        ]
+      : [{ name: "Google Jobs / LinkedIn / Job boards", run: async () => [] }])
   ];
 
   const results = await Promise.allSettled(sourceCalls.map((source) => source.run()));

@@ -438,13 +438,13 @@ MOM_SERPAPI_MAX_QUERIES_PER_RUN
 
 ### Perfil Opcional: Enfermeria Caracas
 
-Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
+Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil busca en las mismas fuentes generales del bot, RSS extra y Google Jobs/LinkedIn/job boards via SerpApi cuando esta activo. Usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
 
-Este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo si quieres que busque esas ofertas.
+Para Google Jobs, LinkedIn, Indeed y job boards agregados por Google, este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo.
 
 ### Perfil Opcional: Pasteleria/Panaderia Caracas
 
-Si `ENABLE_SISTER_BAKERY_PROFILE=true`, el workflow ejecuta un tercer perfil para Yuliana Alvarez. Ese perfil busca ofertas en Caracas relacionadas con panaderia, pasteleria, reposteria, bomboneria, chocolateria, merengues y decoracion de tortas. Usa IA laxa para explicar `Por que matchea` y `Dudas/Riesgos`, pero descarta cocina general, ayudante de cocina, cocina salada, restaurante general, ventas, caja, barista y cargos fuera de panaderia/pasteleria.
+Si `ENABLE_SISTER_BAKERY_PROFILE=true`, el workflow ejecuta un tercer perfil para Yuliana Alvarez. Ese perfil busca en las mismas fuentes generales del bot, RSS extra y Google Jobs/LinkedIn/job boards via SerpApi cuando esta activo. Filtra ofertas en Caracas relacionadas con panaderia, pasteleria, reposteria, bomboneria, chocolateria, merengues y decoracion de tortas. Usa IA laxa para explicar `Por que matchea` y `Dudas/Riesgos`, pero descarta cocina general, ayudante de cocina, cocina salada, restaurante general, ventas, caja, barista y cargos fuera de panaderia/pasteleria.
 
 ## Como Configurar Secrets En GitHub
 
