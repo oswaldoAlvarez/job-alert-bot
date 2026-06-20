@@ -78,12 +78,34 @@ const parseAiEvaluation = (value: unknown): AiJobEvaluation => {
   };
 };
 
+const describeResponseOutput = (payload: Record<string, unknown>): string => {
+  const status = typeof payload.status === "string" ? payload.status : "sin status";
+  const incompleteDetails =
+    typeof payload.incomplete_details === "object" && payload.incomplete_details !== null
+      ? JSON.stringify(payload.incomplete_details)
+      : "sin incomplete_details";
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  const outputTypes = output
+    .map((item) =>
+      typeof item === "object" && item !== null && typeof (item as Record<string, unknown>).type === "string"
+        ? (item as Record<string, unknown>).type
+        : "unknown"
+    )
+    .join(", ");
+
+  return `status=${status}; incomplete=${incompleteDetails}; outputTypes=${outputTypes || "sin output"}`;
+};
+
 const readResponseText = (payload: Record<string, unknown>): string => {
-  if (typeof payload.output_text === "string") return payload.output_text;
+  const chunks: string[] = [];
+  if (typeof payload.output_text === "string") chunks.push(payload.output_text);
 
   const output = Array.isArray(payload.output) ? payload.output : [];
   for (const item of output) {
     if (typeof item !== "object" || item === null) continue;
+
+    const itemText = (item as Record<string, unknown>).text;
+    if (typeof itemText === "string") chunks.push(itemText);
 
     const content = Array.isArray((item as Record<string, unknown>).content)
       ? ((item as Record<string, unknown>).content as unknown[])
@@ -92,15 +114,17 @@ const readResponseText = (payload: Record<string, unknown>): string => {
     for (const contentItem of content) {
       if (typeof contentItem !== "object" || contentItem === null) continue;
       const text = (contentItem as Record<string, unknown>).text;
-      if (typeof text === "string") return text;
+      const refusal = (contentItem as Record<string, unknown>).refusal;
+      if (typeof text === "string") chunks.push(text);
+      if (typeof refusal === "string") chunks.push(refusal);
     }
   }
 
-  return "";
+  return chunks.join("\n").trim();
 };
 
 const extractJson = (value: string): unknown => {
-  const trimmed = value.trim();
+  const trimmed = value.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   const start = trimmed.indexOf("{");
   const end = trimmed.lastIndexOf("}");
 
@@ -247,7 +271,10 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
           content: buildPrompt(job, cvText)
         }
       ],
-      max_output_tokens: 900
+      reasoning: {
+        effort: "minimal"
+      },
+      max_output_tokens: 2000
     })
   });
 
@@ -261,7 +288,16 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
     throw new AiProviderError(`OpenAI fallo (${response.status}): ${message}`, response.status, code);
   }
 
-  const aiEvaluation = parseAiEvaluation(extractJson(readResponseText(payload)));
+  if (payload.status === "incomplete") {
+    throw new Error(`OpenAI devolvio una respuesta incompleta (${describeResponseOutput(payload)})`);
+  }
+
+  const responseText = readResponseText(payload);
+  if (!responseText) {
+    throw new Error(`OpenAI no devolvio texto evaluable (${describeResponseOutput(payload)})`);
+  }
+
+  const aiEvaluation = parseAiEvaluation(extractJson(responseText));
 
   return {
     ...job,
