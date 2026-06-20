@@ -83,7 +83,6 @@ jobs:
           SISTER_SUBJECT_PREFIX: ${{ vars.SISTER_SUBJECT_PREFIX || 'Ofertas Pasteleria Panaderia Caracas' }}
           SISTER_LOCATION: ${{ vars.SISTER_LOCATION || '' }}
           SISTER_MIN_COMPATIBILITY_SCORE: ${{ vars.SISTER_MIN_COMPATIBILITY_SCORE || '0' }}
-          SISTER_LOOKBACK_DAYS: ${{ vars.SISTER_LOOKBACK_DAYS || '7' }}
           SISTER_MAX_JOBS_PER_EMAIL: ${{ vars.SISTER_MAX_JOBS_PER_EMAIL || '20' }}
           SISTER_AI_MAX_CANDIDATES: ${{ vars.SISTER_AI_MAX_CANDIDATES || '20' }}
           SISTER_SERPAPI_RUN_EVERY_HOURS: ${{ vars.SISTER_SERPAPI_RUN_EVERY_HOURS || '12' }}

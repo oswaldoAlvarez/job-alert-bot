@@ -334,7 +334,7 @@ export const config = {
     subjectPrefix: process.env.SISTER_SUBJECT_PREFIX ?? "Ofertas Pasteleria Panaderia Caracas",
     location: process.env.SISTER_LOCATION,
     minCompatibilityScore: numberFromEnv("SISTER_MIN_COMPATIBILITY_SCORE", 0),
-    lookbackDays: numberFromEnv("SISTER_LOOKBACK_DAYS", 7),
+    lookbackDays: 7,
     maxJobsPerEmail: numberFromEnv("SISTER_MAX_JOBS_PER_EMAIL", 20),
     aiMaxCandidates: numberFromEnv("SISTER_AI_MAX_CANDIDATES", 20),
     serpApiQueries: listFromEnv("SISTER_SERPAPI_QUERIES", "|"),
