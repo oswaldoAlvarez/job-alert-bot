@@ -1,0 +1,45 @@
+import { config } from "../config.js";
+import { fetchArbeitnowJobs } from "../sources/arbeitnow.js";
+import { fetchGetOnBoardJobs } from "../sources/getonboard.js";
+import { fetchJobicyJobs } from "../sources/jobicy.js";
+import { fetchRemoteOkJobs } from "../sources/remoteok.js";
+import { fetchRemotiveJobs } from "../sources/remotive.js";
+import { fetchRssJobs } from "../sources/rss.js";
+import { fetchSerpApiJobs } from "../sources/serpapi.js";
+import type { JobPosting } from "../types.js";
+
+export type SourceResult = {
+  jobs: JobPosting[];
+  stats: string[];
+};
+
+export const fetchAllJobs = async (): Promise<SourceResult> => {
+  const rssFeeds = [...config.defaultRssFeeds, ...config.extraRssFeeds];
+  const sourceCalls = [
+    { name: "Remotive", run: fetchRemotiveJobs },
+    { name: "RemoteOK", run: fetchRemoteOkJobs },
+    { name: "Jobicy", run: fetchJobicyJobs },
+    { name: "Get on Board", run: fetchGetOnBoardJobs },
+    { name: "Arbeitnow", run: fetchArbeitnowJobs },
+    ...(rssFeeds.length > 0 ? [{ name: "RSS feeds", run: () => fetchRssJobs(rssFeeds) }] : []),
+    ...(config.enableSerpApi ? [{ name: "Google Jobs / LinkedIn / Job boards", run: fetchSerpApiJobs }] : [])
+  ];
+
+  const results = await Promise.allSettled(sourceCalls.map((source) => source.run()));
+  const stats: string[] = [];
+
+  const jobs = results.flatMap((result, index) => {
+    const sourceName = sourceCalls[index]?.name ?? "Fuente desconocida";
+
+    if (result.status === "fulfilled") {
+      stats.push(`${sourceName}: ${result.value.length} ofertas recibidas`);
+      return result.value;
+    }
+
+    stats.push(`${sourceName}: fallo (${result.reason})`);
+    console.warn(`Fuente fallida: ${sourceName}. ${result.reason}`);
+    return [];
+  });
+
+  return { jobs, stats };
+};

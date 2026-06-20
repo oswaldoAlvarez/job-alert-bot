@@ -77,6 +77,16 @@ const buildPrompt = (job: MatchedJob, cvText: string): string => {
   const description = stripHtml(job.description ?? "").slice(0, 6000);
 
   return [
+    "PREFERENCIAS DE BUSQUEDA:",
+    [
+      "- Roles objetivo: SSR/SR React Native, React, Frontend, Mobile, Frontend Engineer.",
+      "- Perfil principal: mas frontend/mobile que backend.",
+      "- Aceptar fullstack solo si el peso real es mayormente frontend o producto.",
+      "- Descartar fullstack si el foco real es backend, APIs, servicios, DevOps, Java, Python backend o arquitectura backend.",
+      "- Priorizar LATAM, Europa, remoto, freelance, contractor o B2B.",
+      "- Priorizar ofertas en espanol. Para Europa aceptar ingles B1/B2/intermedio; descartar C1/C2/advanced/fluent/native si es requisito fuerte."
+    ].join("\n"),
+    "",
     "CV DEL CANDIDATO:",
     cvText,
     "",
@@ -98,6 +108,44 @@ const buildPrompt = (job: MatchedJob, cvText: string): string => {
   ].join("\n");
 };
 
+const responseFormat = {
+  type: "json_schema",
+  name: "job_match_evaluation",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      compatibilityScore: { type: "number" },
+      recommendation: { type: "string", enum: ["aplicar", "revisar", "descartar"] },
+      summary: { type: "string" },
+      matchReasons: {
+        type: "array",
+        items: { type: "string" }
+      },
+      concerns: {
+        type: "array",
+        items: { type: "string" }
+      },
+      frontendFit: { type: "string", enum: ["alto", "medio", "bajo"] },
+      backendWeight: { type: "string", enum: ["alto", "medio", "bajo"] },
+      englishLevel: { type: "string" },
+      remoteFit: { type: "string" }
+    },
+    required: [
+      "compatibilityScore",
+      "recommendation",
+      "summary",
+      "matchReasons",
+      "concerns",
+      "frontendFit",
+      "backendWeight",
+      "englishLevel",
+      "remoteFit"
+    ]
+  }
+};
+
 export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promise<MatchedJob> => {
   if (!config.openAiApiKey) {
     throw new Error("OPENAI_API_KEY no esta configurada");
@@ -111,19 +159,21 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
     },
     body: JSON.stringify({
       model: config.openAiModel,
+      text: {
+        format: responseFormat
+      },
       input: [
         {
           role: "system",
           content: [
-            "Eres un career matching agent para Oswaldo Alvarez.",
-            "Evalua ofertas contra su CV y preferencias reales.",
+            "Eres un agente de matching laboral para Oswaldo Alvarez.",
+            "Tu tarea es leer la oferta, compararla contra su CV y preferencias, y decidir si vale la pena enviarla.",
             "Perfil fuerte: Frontend/Mobile con React, React Native, TypeScript, fintech, crypto, healthcare y ownership de producto.",
             "Penaliza fuerte ofertas fullstack cuando el trabajo real sea principalmente backend, APIs, Java, Python, Node backend, DevOps o arquitectura backend.",
             "Prioriza React Native, React, frontend, mobile, web, design systems, producto y trabajo remoto.",
             "Prioriza ofertas en espanol, LATAM o Europa. Para Europa acepta ingles B1/B2/intermedio y descarta C1/C2/advanced/fluent/native si es requisito.",
-            "Si no hay suficiente informacion, se honesto y marca dudas.",
-            "Devuelve solo JSON valido, sin markdown.",
-            'Formato exacto: {"compatibilityScore":0,"recommendation":"aplicar|revisar|descartar","summary":"...","matchReasons":["..."],"concerns":["..."],"frontendFit":"alto|medio|bajo","backendWeight":"alto|medio|bajo","englishLevel":"...","remoteFit":"..."}'
+            "Si no hay suficiente informacion, marca la oferta como revisar y explica las dudas.",
+            "Se estricto: una oferta que menciona React pero pide mucho backend no debe pasar como aplicar."
           ].join(" ")
         },
         {

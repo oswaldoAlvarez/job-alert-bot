@@ -24,12 +24,17 @@ export const config = {
   openAiApiKey: process.env.OPENAI_API_KEY,
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-5-mini",
   cvUrl: process.env.CV_URL ?? "https://oswaldo-virtual-cv.vercel.app/es",
+  serpApiKey: process.env.SERPAPI_API_KEY,
+  enableSerpApi: booleanFromEnv("ENABLE_SERPAPI", Boolean(process.env.SERPAPI_API_KEY)),
+  serpApiLocation: process.env.SERPAPI_LOCATION ?? "Miami, Florida, United States",
+  serpApiCountry: process.env.SERPAPI_GL ?? "us",
+  serpApiLanguage: process.env.SERPAPI_HL ?? "es",
+  serpApiQueries: (process.env.SERPAPI_QUERIES ?? "")
+    .split("|")
+    .map((query) => query.trim())
+    .filter(Boolean),
   sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", false),
   dryRun: booleanFromEnv("DRY_RUN", false),
-  requireSpanishSignal: booleanFromEnv("REQUIRE_SPANISH_SIGNAL", true),
-  requireRegionSignal: booleanFromEnv("REQUIRE_REGION_SIGNAL", true),
-  requireRemoteOrContractSignal: booleanFromEnv("REQUIRE_REMOTE_OR_CONTRACT_SIGNAL", true),
-  requireEuropeSpanishOrB2English: booleanFromEnv("REQUIRE_EUROPE_SPANISH_OR_B2_ENGLISH", true),
   extraRssFeeds: (process.env.EXTRA_RSS_FEEDS ?? "")
     .split(",")
     .map((feed) => feed.trim())

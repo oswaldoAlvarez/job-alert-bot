@@ -1,6 +1,6 @@
 # Job Alert Bot
 
-Bot en Node.js + TypeScript que busca ofertas de empleo para perfiles SSR/SR de React, React Native o Frontend, filtra las que mejor encajan con el criterio definido y envía un resumen por correo.
+Agente en Node.js + TypeScript que busca ofertas de empleo para perfiles SSR/SR de React, React Native o Frontend, compara cada oferta contra el CV virtual con IA y envia un resumen por correo.
 
 El objetivo es recibir actualizaciones automáticas cada 1 hora con ofertas relevantes para LATAM, Europa, posiciones remotas, freelance o contractor.
 
@@ -9,13 +9,14 @@ El objetivo es recibir actualizaciones automáticas cada 1 hora con ofertas rele
 Cada ejecución del bot hace este flujo:
 
 ```txt
-1. Consulta fuentes de empleo publicas.
+1. El orquestador consulta fuentes de empleo publicas.
 2. Normaliza todas las ofertas a un formato comun.
-3. Filtra por tecnologia, seniority, region, modalidad e idioma.
+3. Hace una preseleccion amplia por senales tecnicas para no gastar IA en basura.
 4. Descarta ofertas ya enviadas anteriormente.
-5. Si esta activada la IA, compara cada oferta contra el CV virtual.
-6. Genera un resumen en texto y HTML.
-7. Envia el resumen por email usando SMTP.
+5. El agente de IA compara cada oferta contra el CV virtual, experiencia, tecnologias y preferencias.
+6. La IA decide aplicar, revisar o descartar.
+7. Genera un resumen en texto y HTML con explicacion de compatibilidad.
+8. Envia el resumen por email usando SMTP.
 ```
 
 El bot puede ejecutarse de dos formas:
@@ -23,22 +24,23 @@ El bot puede ejecutarse de dos formas:
 - Manualmente desde tu Mac.
 - Automaticamente cada 1 hora con GitHub Actions.
 
-## Criterios De Busqueda
+## Criterios Del Agente
 
-El bot busca ofertas que cumplan con estas condiciones:
+El agente busca ofertas que tengan senales de:
 
 - Tecnologia: React, React Native, React.js, ReactJS, Frontend o Front-end.
-- Seniority: SSR, Semi Senior, Senior o SR.
-- Region: LATAM, Europa, Espana o paises hispanohablantes/europeos.
+- Seniority objetivo: SSR, Semi Senior, Senior o SR.
+- Perfil principal: mas frontend/mobile que backend.
+- Region objetivo: LATAM, Europa, Espana o paises hispanohablantes/europeos.
 - Modalidad: remoto, full remote, freelance, contractor, B2B o contrato.
 - Idioma: prioridad a ofertas en espanol.
 
-Para Europa aplica una regla especial:
+La IA aplica una regla especial para Europa:
 
 - Si pide ingles B1, B2 o intermedio, la oferta puede pasar.
 - Si pide ingles C1, C2, advanced, fluent o native, se descarta.
 
-Tambien descarta ofertas Junior, Trainee, Intern, Internship, Practicas o Becario.
+El preselector descarta antes de la IA ofertas Junior, Trainee, Intern, Internship, Practicas o Becario.
 
 ## Evaluacion Con IA
 
@@ -50,7 +52,7 @@ https://oswaldo-virtual-cv.vercel.app/es
 
 Esta etapa sirve para evitar falsos positivos como ofertas Fullstack que mencionan React pero en realidad son mas backend que frontend.
 
-Cuando `ENABLE_AI_MATCHING=true`, cada oferta prefiltrada se evalua con estos criterios:
+Cuando `ENABLE_AI_MATCHING=true`, cada oferta preseleccionada se evalua con estos criterios:
 
 - Compatibilidad general de 0 a 100.
 - Recomendacion: aplicar, revisar o descartar.
@@ -64,6 +66,8 @@ Cuando `ENABLE_AI_MATCHING=true`, cada oferta prefiltrada se evalua con estos cr
 
 La IA descarta del email las ofertas con recomendacion `descartar`, score menor a `AI_MIN_COMPATIBILITY_SCORE`, o fit frontend bajo con peso backend alto.
 
+Esto no es RAG con vector database. El CV virtual es pequeno y publico, asi que el agente lo lee completo en cada ejecucion y lo mete como contexto directo del modelo. Si luego agregas varios CVs, portfolio largo, cartas, historial de postulaciones o preferencias extensas, ahi si tendria sentido convertirlo en RAG.
+
 ## Fuentes Incluidas
 
 Fuentes que el bot consulta automaticamente:
@@ -73,6 +77,7 @@ Fuentes que el bot consulta automaticamente:
 - Jobicy API.
 - Get on Board API.
 - Arbeitnow API.
+- Google Jobs via SerpApi, opcional, para traer resultados de LinkedIn, Indeed y job boards de empresas.
 - We Work Remotely RSS.
 - Himalayas Atom feed.
 - Real Work From Anywhere RSS.
@@ -89,10 +94,11 @@ Esto sirve para agregar RSS de busquedas concretas de portales como InfoJobs, Te
 
 LinkedIn Jobs, Indeed, Upwork, Bumeran y portales similares no siempre ofrecen una API publica simple para buscar ofertas como candidato. Muchos bloquean automatizaciones con captcha, rate limits o requieren acceso de partner.
 
-Por eso este bot usa fuentes publicas y APIs/RSS disponibles. Para integrar esos portales de forma mas robusta hay tres caminos:
+Por eso el agente usa fuentes publicas, APIs/RSS disponibles y, opcionalmente, SerpApi Google Jobs. Google Jobs suele agregar ofertas desde LinkedIn, Indeed, portales de empleo y job boards propios de empresas.
 
-- Usar su API oficial si tienes acceso aprobado.
-- Usar un proveedor externo como Apify, SerpApi, TheirStack o Coresignal.
+- Usar `SERPAPI_API_KEY` para activar busquedas en Google Jobs.
+- Usar la API oficial de LinkedIn solo si tienes acceso aprobado.
+- Usar un proveedor externo como Apify, TheirStack o Coresignal si necesitas LinkedIn directo.
 - Crear alertas/RSS cuando el portal lo permita y agregarlas en `EXTRA_RSS_FEEDS`.
 
 ## Estructura Del Proyecto
@@ -105,6 +111,10 @@ job-alert-bot/
     index.ts
     config.ts
     types.ts
+    agent/
+      jobAgent.ts
+      preselectJobs.ts
+      sourceRunner.ts
     sources/
       arbeitnow.ts
       getonboard.ts
@@ -112,8 +122,8 @@ job-alert-bot/
       remoteok.ts
       remotive.ts
       rss.ts
+      serpapi.ts
     filters/
-      matchJob.ts
       normalize.ts
     services/
       aiMatcher.ts
@@ -122,7 +132,7 @@ job-alert-bot/
       email.ts
       state.ts
   tests/
-    matchJob.test.ts
+    jobAgent.test.ts
   .env.example
   .gitignore
   package.json
@@ -133,7 +143,19 @@ job-alert-bot/
 
 `src/index.ts`
 
-Orquesta todo el proceso: consulta fuentes, filtra ofertas, genera el digest y envia el email.
+Arranca el agente.
+
+`src/agent/jobAgent.ts`
+
+Orquestador principal: consulta fuentes, deduplica, preselecciona candidatos, llama a la IA, genera el digest y envia el email.
+
+`src/agent/sourceRunner.ts`
+
+Ejecuta todas las fuentes de empleo y captura estadisticas o fallos por fuente.
+
+`src/agent/preselectJobs.ts`
+
+Preselector barato y amplio. No decide compatibilidad final; solo evita gastar IA en ofertas claramente fuera del area.
 
 `src/config.ts`
 
@@ -142,10 +164,6 @@ Contiene configuracion, filtros, palabras clave y variables de entorno.
 `src/sources/`
 
 Contiene los conectores a cada fuente de empleo.
-
-`src/filters/matchJob.ts`
-
-Decide si una oferta pasa o no los filtros.
 
 `src/services/email.ts`
 
@@ -196,25 +214,35 @@ SMTP_PASSWORD=app-password-de-gmail
 EMAIL_FROM=tu-email@gmail.com
 EMAIL_TO=destino@gmail.com
 OPENAI_API_KEY=
+SERPAPI_API_KEY=
 
-ENABLE_AI_MATCHING=false
+ENABLE_AI_MATCHING=true
 OPENAI_MODEL=gpt-5-mini
 CV_URL=https://oswaldo-virtual-cv.vercel.app/es
 AI_MAX_CANDIDATES=30
 AI_MIN_COMPATIBILITY_SCORE=70
+ENABLE_SERPAPI=false
+SERPAPI_LOCATION=Miami, Florida, United States
+SERPAPI_GL=us
+SERPAPI_HL=es
+SERPAPI_QUERIES=
 LOOKBACK_DAYS=3
 MAX_JOBS_PER_EMAIL=20
 SEND_EMPTY_DIGEST=false
-REQUIRE_SPANISH_SIGNAL=true
-REQUIRE_REGION_SIGNAL=true
-REQUIRE_REMOTE_OR_CONTRACT_SIGNAL=true
-REQUIRE_EUROPE_SPANISH_OR_B2_ENGLISH=true
 EXTRA_RSS_FEEDS=
 ```
 
 `SMTP_PASSWORD` debe ser una App Password de Gmail, no la contrasena normal de la cuenta.
 
 `OPENAI_API_KEY` es necesaria solo si activas `ENABLE_AI_MATCHING=true`.
+
+`SERPAPI_API_KEY` es necesaria solo si activas `ENABLE_SERPAPI=true`.
+
+`SERPAPI_QUERIES` permite definir busquedas separadas por `|`. Ejemplo:
+
+```txt
+Senior React Native remote LATAM contractor|Senior React frontend remote Europe B2|React Native remoto Espana freelance
+```
 
 ## Ejecucion Manual
 
@@ -234,9 +262,10 @@ Resumen de busqueda:
 - Get on Board: X ofertas recibidas
 - Arbeitnow: X ofertas recibidas
 - RSS feeds: X ofertas recibidas
+- Google Jobs / LinkedIn / Job boards: X ofertas recibidas
 - Total recibido: X
 - Recientes: X
-- Pasaron filtros: X
+- Candidatas para IA: X
 - Nuevas no enviadas antes: X
 - Evaluadas por IA: X
 - Seleccionadas para email: X
@@ -298,6 +327,12 @@ EMAIL_TO = destino@gmail.com
 OPENAI_API_KEY = sk-...
 ```
 
+Secret opcional para buscar tambien en Google Jobs, LinkedIn, Indeed y job boards de empresas via SerpApi:
+
+```txt
+SERPAPI_API_KEY
+```
+
 Variables opcionales en GitHub Actions:
 
 ```txt
@@ -308,11 +343,12 @@ OPENAI_MODEL
 CV_URL
 AI_MAX_CANDIDATES
 AI_MIN_COMPATIBILITY_SCORE
+ENABLE_SERPAPI
+SERPAPI_LOCATION
+SERPAPI_GL
+SERPAPI_HL
+SERPAPI_QUERIES
 SEND_EMPTY_DIGEST
-REQUIRE_SPANISH_SIGNAL
-REQUIRE_REGION_SIGNAL
-REQUIRE_REMOTE_OR_CONTRACT_SIGNAL
-REQUIRE_EUROPE_SPANISH_OR_B2_ENGLISH
 EXTRA_RSS_FEEDS
 ```
 
