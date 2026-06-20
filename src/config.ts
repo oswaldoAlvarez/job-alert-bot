@@ -318,7 +318,7 @@ export const config = {
     profileName: process.env.MOM_PROFILE_NAME ?? "Yuly Enfermeria Caracas",
     subjectPrefix: process.env.MOM_SUBJECT_PREFIX ?? "Ofertas Enfermeria Caracas",
     location: process.env.MOM_LOCATION,
-    minCompatibilityScore: numberFromEnv("MOM_MIN_COMPATIBILITY_SCORE", 75),
+    minCompatibilityScore: numberFromEnv("MOM_MIN_COMPATIBILITY_SCORE", 50),
     lookbackDays: numberFromEnv("MOM_LOOKBACK_DAYS", 7),
     maxJobsPerEmail: numberFromEnv("MOM_MAX_JOBS_PER_EMAIL", 20),
     aiMaxCandidates: numberFromEnv("MOM_AI_MAX_CANDIDATES", 20),
@@ -454,7 +454,19 @@ export const momNursingProfile: JobProfile = {
     "ocupacional",
     "instrumentista"
   ],
-  exclusionTerms: ["medico", "médico", "odontologo", "odontólogo", "farmaceutico", "farmacéutico", "ventas", "comercial", "recepcionista", "administrativo"],
+  exclusionTerms: [
+    "medico",
+    "médico",
+    "odontologo",
+    "odontólogo",
+    "farmaceutico",
+    "farmacéutico",
+    "ventas",
+    "comercial",
+    "recepcionista",
+    "administrativo",
+    "gerente de farmacia"
+  ],
   blockedTerms: ["brazil", "brasil", "portuguese", "portugues", "portugués"],
   positiveSignals: [
     "caracas",
@@ -485,13 +497,14 @@ export const momNursingProfile: JobProfile = {
     "Perfil objetivo: Yuly Maribel Delgado Rodriguez, licenciada en enfermeria ubicada en Caracas, Venezuela.",
     "Experiencia en Clinica Santa Sofia, Clinica Metropolitana, Centro Medico Clinico Loira y Hospital Militar Carlos Arvelo.",
     "Experiencia en enfermeria clinica, cardiologia, cuidados intensivos y oncologia.",
-    "Buscar ofertas presenciales o por turnos en Caracas/Distrito Capital para licenciada en enfermeria, enfermera profesional, enfermera clinica, enfermera ocupacional, hospital, clinica, centro medico o enfermeria a domicilio.",
+    "Buscar ofertas presenciales o por turnos en Caracas/Distrito Capital para cualquier trabajo relacionado con enfermeria, cuidado de pacientes, salud asistencial, clinicas, hospitales, centro medico o enfermeria a domicilio.",
     "Incluir especialmente ofertas de cuidado de pacientes medicos, pacientes con enfermedades, pacientes postoperatorios/post-operatorios, recuperacion, hospitalizacion, cuidados a domicilio, cuidados intensivos, oncologia y seguimiento de tratamientos.",
     "Priorizar especialmente enfermeria domiciliaria: administracion de tratamiento, bano en cama, alimentacion por sonda, cuidado/curacion de heridas, atencion de adulto mayor, cuidados propios de enfermeria, pacientes COVID o pacientes respiratorios.",
+    "Ser laxo: enviar casi toda oferta que Yuly pueda trabajar si esta relacionada con enfermeria o cuidado de pacientes. No exigir match perfecto ni seniority exacto.",
     "Priorizar Caracas, Distrito Capital o zonas razonables de Caracas. Descartar ofertas fuera de Venezuela o que exijan mudarse lejos.",
-    "Descartar ofertas que sean para medico, odontologo, farmacia, ventas, administracion, recepcion, laboratorio sin funcion de enfermeria o cargos no asistenciales.",
+    "Descartar solo ruido claro: medico, odontologo, farmacia sin enfermeria, ventas, administracion, recepcion, laboratorio sin funcion de enfermeria o cargos no asistenciales.",
     "Extraer salario/rango salarial si aparece. Si no aparece, usar No indicado.",
-    "Recomendar aplicar si la compatibilidad real es igual o mayor al umbral y la oferta parece adecuada para una licenciada en enfermeria con experiencia senior."
+    "Recomendar aplicar si la oferta esta minimamente relacionada con enfermeria/cuidado de pacientes y podria ser trabajable para ella. Usar descartar solo si claramente no corresponde."
   ],
   sendGuardrails: {
     acceptedRoles: ["other"],

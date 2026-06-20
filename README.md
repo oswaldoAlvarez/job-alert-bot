@@ -389,7 +389,7 @@ Si no configuras estas variables opcionales, el workflow usa valores por defecto
 
 ### Perfil Opcional: Enfermeria Caracas
 
-Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil busca ofertas presenciales/onsite de licenciada en enfermeria en Caracas, con foco en enfermeria domiciliaria, cuidado de pacientes medicos, postoperatorios, adulto mayor, alimentacion por sonda, cuidado de heridas, administracion de tratamiento, pacientes COVID/respiratorios, clinicas, hospitales y centros medicos. Este perfil no exige remoto.
+Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil busca ofertas presenciales/onsite de licenciada en enfermeria en Caracas, con foco en enfermeria domiciliaria, cuidado de pacientes medicos, postoperatorios, adulto mayor, alimentacion por sonda, cuidado de heridas, administracion de tratamiento, pacientes COVID/respiratorios, clinicas, hospitales y centros medicos. Este perfil no exige remoto y usa un filtro laxo: envia casi toda oferta relacionada con enfermeria o cuidado de pacientes, descartando solo ruido claro.
 
 Este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo si quieres que busque esas ofertas.
 
