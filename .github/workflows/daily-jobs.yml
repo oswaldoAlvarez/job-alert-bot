@@ -68,7 +68,7 @@ jobs:
           ENABLE_MOM_NURSING_PROFILE: ${{ vars.ENABLE_MOM_NURSING_PROFILE || 'false' }}
           MOM_PROFILE_NAME: ${{ vars.MOM_PROFILE_NAME || 'Yuly Enfermeria Caracas' }}
           MOM_SUBJECT_PREFIX: ${{ vars.MOM_SUBJECT_PREFIX || 'Ofertas Enfermeria Caracas' }}
-          MOM_LOCATION: ${{ vars.MOM_LOCATION || 'Caracas, Distrito Capital, Venezuela' }}
+          MOM_LOCATION: ${{ vars.MOM_LOCATION || '' }}
           MOM_MIN_COMPATIBILITY_SCORE: ${{ vars.MOM_MIN_COMPATIBILITY_SCORE || '75' }}
           MOM_LOOKBACK_DAYS: ${{ vars.MOM_LOOKBACK_DAYS || '7' }}
           MOM_MAX_JOBS_PER_EMAIL: ${{ vars.MOM_MAX_JOBS_PER_EMAIL || '20' }}

@@ -317,7 +317,7 @@ export const config = {
     cvText: process.env.MOM_CV_TEXT,
     profileName: process.env.MOM_PROFILE_NAME ?? "Yuly Enfermeria Caracas",
     subjectPrefix: process.env.MOM_SUBJECT_PREFIX ?? "Ofertas Enfermeria Caracas",
-    location: process.env.MOM_LOCATION ?? "Caracas, Distrito Capital, Venezuela",
+    location: process.env.MOM_LOCATION,
     minCompatibilityScore: numberFromEnv("MOM_MIN_COMPATIBILITY_SCORE", 75),
     lookbackDays: numberFromEnv("MOM_LOOKBACK_DAYS", 7),
     maxJobsPerEmail: numberFromEnv("MOM_MAX_JOBS_PER_EMAIL", 20),

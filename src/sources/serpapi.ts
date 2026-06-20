@@ -140,7 +140,7 @@ const isRunDue = (state: SerpApiUsageState, profileId: string, runEveryHours: nu
   return elapsedHours >= runEveryHours;
 };
 
-const fetchQuery = async (query: string, location: string): Promise<JobPosting[]> => {
+const fetchQuery = async (query: string, location?: string): Promise<JobPosting[]> => {
   if (!config.serpApiKey) {
     throw new Error("SERPAPI_API_KEY no esta configurada");
   }
@@ -151,13 +151,21 @@ const fetchQuery = async (query: string, location: string): Promise<JobPosting[]
   url.searchParams.set("api_key", config.serpApiKey);
   url.searchParams.set("hl", config.serpApiLanguage);
   url.searchParams.set("gl", config.serpApiCountry);
-  url.searchParams.set("location", location);
+  if (location) {
+    url.searchParams.set("location", location);
+  }
 
   const response = await fetch(url);
   const payload = (await response.json()) as SerpApiResponse;
 
   if (!response.ok || payload.error) {
-    throw new Error(payload.error ?? `SerpApi returned ${response.status}`);
+    const message = payload.error ?? `SerpApi returned ${response.status}`;
+    if (location && message.toLowerCase().includes("unsupported") && message.toLowerCase().includes("location")) {
+      console.warn(`SerpApi no soporta location "${location}" para "${query}". Reintentando sin location.`);
+      return fetchQuery(query);
+    }
+
+    throw new Error(message);
   }
 
   return (payload.jobs_results ?? []).map((job) => {
