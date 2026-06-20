@@ -31,13 +31,14 @@ El agente busca ofertas que tengan senales de:
 - Tecnologia: React, React Native, React.js, ReactJS, Frontend o Front-end.
 - Seniority objetivo: SSR, Semi Senior, Senior o SR.
 - Perfil principal: mas frontend/mobile que backend.
-- Region objetivo: LATAM, Europa, Espana o paises hispanohablantes/europeos.
-- Modalidad: remoto, full remote, freelance, contractor, B2B o contrato.
-- Idioma: prioridad a ofertas en espanol.
+- Fullstack solo si el foco real sigue siendo frontend con React, React Native o Next.js.
+- Modalidad: full remote, sin exigir vivir en un pais especifico. Puede ser mundial o por region amplia.
+- Idioma: oferta en espanol o con senal clara de equipo/mercado hispanohablante.
 
-La IA aplica una regla especial para Europa:
+La IA verifica el ingles requerido:
 
-- Si pide ingles B1, B2 o intermedio, la oferta puede pasar.
+- Si no pide ingles, puede pasar.
+- Si pide ingles B1, B2 o intermedio, puede pasar.
 - Si pide ingles C1, C2, advanced, fluent o native, se descarta.
 
 El preselector descarta antes de la IA ofertas Junior, Trainee, Intern, Internship, Practicas o Becario.
@@ -62,9 +63,10 @@ Cuando `ENABLE_AI_MATCHING=true`, cada oferta preseleccionada se evalua con esto
 - Fit Frontend: alto, medio o bajo.
 - Peso Backend: alto, medio o bajo.
 - Nivel de ingles detectado.
+- Rango salarial, si aparece en la oferta.
 - Compatibilidad con remoto, LATAM o Europa.
 
-La IA descarta del email las ofertas con recomendacion `descartar`, score menor a `AI_MIN_COMPATIBILITY_SCORE`, o fit frontend bajo con peso backend alto.
+La IA descarta del email las ofertas que no sean recomendacion `aplicar`, tengan score menor a `AI_MIN_COMPATIBILITY_SCORE`, no tengan fit frontend alto, tengan backend alto, pidan ingles mayor a B2, exijan vivir en un pais especifico o no tengan senal de espanol.
 
 Esto no es RAG con vector database. El CV virtual es pequeno y publico, asi que el agente lo lee completo en cada ejecucion y lo mete como contexto directo del modelo. Si luego agregas varios CVs, portfolio largo, cartas, historial de postulaciones o preferencias extensas, ahi si tendria sentido convertirlo en RAG.
 
@@ -220,7 +222,7 @@ ENABLE_AI_MATCHING=true
 OPENAI_MODEL=gpt-5-mini
 CV_URL=https://oswaldo-virtual-cv.vercel.app/es
 AI_MAX_CANDIDATES=30
-AI_MIN_COMPATIBILITY_SCORE=70
+AI_MIN_COMPATIBILITY_SCORE=90
 ENABLE_SERPAPI=false
 SERPAPI_LOCATION=Miami, Florida, United States
 SERPAPI_GL=us
@@ -229,7 +231,7 @@ SERPAPI_MONTHLY_LIMIT=220
 SERPAPI_RUN_EVERY_HOURS=12
 SERPAPI_MAX_QUERIES_PER_RUN=3
 SERPAPI_QUERIES=
-LOOKBACK_DAYS=3
+LOOKBACK_DAYS=7
 MAX_JOBS_PER_EMAIL=20
 SEND_EMPTY_DIGEST=false
 EXTRA_RSS_FEEDS=

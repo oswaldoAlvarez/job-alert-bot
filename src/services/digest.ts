@@ -28,8 +28,14 @@ export const renderTextDigest = (jobs: MatchedJob[]): string => {
               `Resumen IA: ${job.aiEvaluation.summary}`,
               `Fit Frontend: ${job.aiEvaluation.frontendFit}`,
               `Peso Backend: ${job.aiEvaluation.backendWeight}`,
-              `Ingles: ${job.aiEvaluation.englishLevel}`,
+              `Foco del rol: ${job.aiEvaluation.roleFocus}`,
+              `Ingles: ${job.aiEvaluation.englishLevel} (${job.aiEvaluation.englishRequirement})`,
+              job.aiEvaluation.salaryRange && job.aiEvaluation.salaryRange !== "No indicado"
+                ? `Rango salarial IA: ${job.aiEvaluation.salaryRange}`
+                : undefined,
               `Remoto/Region: ${job.aiEvaluation.remoteFit}`,
+              `Alcance remoto: ${job.aiEvaluation.remoteScope}`,
+              `Senal espanol: ${job.aiEvaluation.spanishFit}`,
               job.aiEvaluation.matchReasons.length > 0
                 ? `Por que matchea: ${job.aiEvaluation.matchReasons.join(" | ")}`
                 : undefined,
@@ -71,8 +77,16 @@ export const renderHtmlDigest = (jobs: MatchedJob[]): string => {
                 <p><strong>Resumen IA:</strong> ${job.aiEvaluation.summary}</p>
                 <p><strong>Fit Frontend:</strong> ${job.aiEvaluation.frontendFit}</p>
                 <p><strong>Peso Backend:</strong> ${job.aiEvaluation.backendWeight}</p>
-                <p><strong>Ingles:</strong> ${job.aiEvaluation.englishLevel}</p>
+                <p><strong>Foco del rol:</strong> ${job.aiEvaluation.roleFocus}</p>
+                <p><strong>Ingles:</strong> ${job.aiEvaluation.englishLevel} (${job.aiEvaluation.englishRequirement})</p>
+                ${
+                  job.aiEvaluation.salaryRange && job.aiEvaluation.salaryRange !== "No indicado"
+                    ? `<p><strong>Rango salarial IA:</strong> ${job.aiEvaluation.salaryRange}</p>`
+                    : ""
+                }
                 <p><strong>Remoto/Region:</strong> ${job.aiEvaluation.remoteFit}</p>
+                <p><strong>Alcance remoto:</strong> ${job.aiEvaluation.remoteScope}</p>
+                <p><strong>Senal espanol:</strong> ${job.aiEvaluation.spanishFit}</p>
                 ${
                   job.aiEvaluation.matchReasons.length > 0
                     ? `<p><strong>Por que matchea:</strong> ${job.aiEvaluation.matchReasons.join(" | ")}</p>`

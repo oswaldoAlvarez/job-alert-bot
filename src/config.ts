@@ -16,10 +16,10 @@ const booleanFromEnv = (name: string, fallback: boolean): boolean => {
 };
 
 export const config = {
-  lookbackDays: numberFromEnv("LOOKBACK_DAYS", 3),
+  lookbackDays: numberFromEnv("LOOKBACK_DAYS", 7),
   maxJobsPerEmail: numberFromEnv("MAX_JOBS_PER_EMAIL", 20),
   aiMaxCandidates: numberFromEnv("AI_MAX_CANDIDATES", 30),
-  aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 70),
+  aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 90),
   enableAiMatching: booleanFromEnv("ENABLE_AI_MATCHING", Boolean(process.env.OPENAI_API_KEY)),
   openAiApiKey: process.env.OPENAI_API_KEY,
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-5-mini",

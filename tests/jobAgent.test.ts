@@ -79,8 +79,13 @@ describe("renderTextDigest", () => {
           concerns: ["Confirmar salario"],
           frontendFit: "alto",
           backendWeight: "bajo",
-          englishLevel: "B2",
-          remoteFit: "LATAM remoto"
+          englishLevel: "B2 requerido",
+          englishRequirement: "b2",
+          salaryRange: "USD 4,000 - 6,000",
+          remoteFit: "Full remote LATAM",
+          remoteScope: "region_restricted",
+          roleFocus: "mobile",
+          spanishFit: "spanish_offer"
         }
       } as MatchedJob
     ]);
@@ -88,25 +93,100 @@ describe("renderTextDigest", () => {
     expect(digest).toContain("Compatibilidad IA: 86/100");
     expect(digest).toContain("Buen match mobile/frontend.");
     expect(digest).toContain("Peso Backend: bajo");
+    expect(digest).toContain("Rango salarial IA: USD 4,000 - 6,000");
   });
 });
 
 describe("shouldSendAiMatchedJob", () => {
+  const goodEvaluation = {
+    compatibilityScore: 92,
+    recommendation: "aplicar" as const,
+    summary: "Buen fit frontend remoto en espanol.",
+    matchReasons: ["React", "Frontend alto"],
+    concerns: [],
+    frontendFit: "alto" as const,
+    backendWeight: "bajo" as const,
+    englishLevel: "B2 requerido",
+    englishRequirement: "b2" as const,
+    salaryRange: "No indicado",
+    remoteFit: "Full remote LATAM",
+    remoteScope: "region_restricted" as const,
+    roleFocus: "frontend" as const,
+    spanishFit: "spanish_offer" as const
+  };
+
+  it("envia solo ofertas aplicar con score alto y guardrails cumplidos", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 92,
+      reasons: ["Senales tecnicas: react"],
+      aiEvaluation: goodEvaluation
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(true);
+  });
+
   it("descarta ofertas con poco fit frontend y alto peso backend", () => {
     const shouldSend = shouldSendAiMatchedJob({
       ...baseJob,
       score: 80,
       reasons: ["Senales tecnicas: react"],
       aiEvaluation: {
-        compatibilityScore: 80,
-        recommendation: "revisar",
+        ...goodEvaluation,
+        compatibilityScore: 95,
+        recommendation: "aplicar",
         summary: "Oferta fullstack con foco backend.",
         matchReasons: ["Menciona React"],
         concerns: ["Backend dominante"],
         frontendFit: "bajo",
-        backendWeight: "alto",
-        englishLevel: "No indicado",
-        remoteFit: "Remoto"
+        backendWeight: "alto"
+      }
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(false);
+  });
+
+  it("descarta ofertas con ingles C1 o superior requerido", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 95,
+      reasons: ["Senales tecnicas: react"],
+      aiEvaluation: {
+        ...goodEvaluation,
+        compatibilityScore: 95,
+        englishLevel: "C1 requerido",
+        englishRequirement: "c1"
+      }
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(false);
+  });
+
+  it("descarta ofertas remotas restringidas a un pais especifico", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 95,
+      reasons: ["Senales tecnicas: react"],
+      aiEvaluation: {
+        ...goodEvaluation,
+        compatibilityScore: 95,
+        remoteFit: "Remote Spain only",
+        remoteScope: "country_restricted"
+      }
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(false);
+  });
+
+  it("descarta ofertas sin senal de espanol", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 95,
+      reasons: ["Senales tecnicas: react"],
+      aiEvaluation: {
+        ...goodEvaluation,
+        compatibilityScore: 95,
+        spanishFit: "not_specified"
       }
     } as MatchedJob);
 

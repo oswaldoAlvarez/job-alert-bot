@@ -53,7 +53,28 @@ const parseAiEvaluation = (value: unknown): AiJobEvaluation => {
     frontendFit: normalizeLevel(data.frontendFit, ["alto", "medio", "bajo"], "medio"),
     backendWeight: normalizeLevel(data.backendWeight, ["alto", "medio", "bajo"], "medio"),
     englishLevel: typeof data.englishLevel === "string" ? data.englishLevel.trim().slice(0, 120) : "No indicado",
-    remoteFit: typeof data.remoteFit === "string" ? data.remoteFit.trim().slice(0, 160) : "No indicado"
+    englishRequirement: normalizeLevel(
+      data.englishRequirement,
+      ["none", "not_specified", "b1", "b2", "c1", "c2", "advanced", "fluent", "native", "unknown"],
+      "unknown"
+    ),
+    salaryRange: typeof data.salaryRange === "string" ? data.salaryRange.trim().slice(0, 160) : "No indicado",
+    remoteFit: typeof data.remoteFit === "string" ? data.remoteFit.trim().slice(0, 160) : "No indicado",
+    remoteScope: normalizeLevel(
+      data.remoteScope,
+      ["worldwide", "region_restricted", "country_restricted", "hybrid", "onsite", "unknown"],
+      "unknown"
+    ),
+    roleFocus: normalizeLevel(
+      data.roleFocus,
+      ["frontend", "mobile", "fullstack_frontend", "fullstack_backend", "backend", "other"],
+      "other"
+    ),
+    spanishFit: normalizeLevel(
+      data.spanishFit,
+      ["spanish_offer", "spanish_speaking_team", "not_specified", "no"],
+      "not_specified"
+    )
   };
 };
 
@@ -97,11 +118,14 @@ const buildPrompt = (job: MatchedJob, cvText: string): string => {
     "PREFERENCIAS DE BUSQUEDA:",
     [
       "- Roles objetivo: SSR/SR React Native, React, Frontend, Mobile, Frontend Engineer.",
-      "- Perfil principal: mas frontend/mobile que backend.",
-      "- Aceptar fullstack solo si el peso real es mayormente frontend o producto.",
-      "- Descartar fullstack si el foco real es backend, APIs, servicios, DevOps, Java, Python backend o arquitectura backend.",
-      "- Priorizar LATAM, Europa, remoto, freelance, contractor o B2B.",
-      "- Priorizar ofertas en espanol. Para Europa aceptar ingles B1/B2/intermedio; descartar C1/C2/advanced/fluent/native si es requisito fuerte."
+      "- Perfil principal: frontend/mobile. No asumir experiencia backend fuerte.",
+      "- Aceptar fullstack solo si el trabajo real es mayormente frontend y usa React, React Native o Next.js.",
+      "- Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, Python, .NET, PHP, Ruby, Go, backend Node o arquitectura backend.",
+      "- La oferta debe ser full remota. Puede ser mundial o restringida por region amplia, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
+      "- Priorizar ofertas en espanol. Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
+      "- Verificar si el ingles es requerido. Si requiere C1, C2, advanced, fluent, native o similar, descartar. Si no pide ingles o pide maximo B1/B2/intermedio, puede pasar.",
+      "- Extraer rango salarial si aparece en titulo, descripcion, tags o metadata. Si no aparece, usar No indicado.",
+      "- Solo recomendar aplicar si la compatibilidad real es 90 o mas y puedes explicar por que es buen fit para postular."
     ].join("\n"),
     "",
     "CV DEL CANDIDATO:",
@@ -147,7 +171,24 @@ const responseFormat = {
       frontendFit: { type: "string", enum: ["alto", "medio", "bajo"] },
       backendWeight: { type: "string", enum: ["alto", "medio", "bajo"] },
       englishLevel: { type: "string" },
-      remoteFit: { type: "string" }
+      englishRequirement: {
+        type: "string",
+        enum: ["none", "not_specified", "b1", "b2", "c1", "c2", "advanced", "fluent", "native", "unknown"]
+      },
+      salaryRange: { type: "string" },
+      remoteFit: { type: "string" },
+      remoteScope: {
+        type: "string",
+        enum: ["worldwide", "region_restricted", "country_restricted", "hybrid", "onsite", "unknown"]
+      },
+      roleFocus: {
+        type: "string",
+        enum: ["frontend", "mobile", "fullstack_frontend", "fullstack_backend", "backend", "other"]
+      },
+      spanishFit: {
+        type: "string",
+        enum: ["spanish_offer", "spanish_speaking_team", "not_specified", "no"]
+      }
     },
     required: [
       "compatibilityScore",
@@ -158,7 +199,12 @@ const responseFormat = {
       "frontendFit",
       "backendWeight",
       "englishLevel",
-      "remoteFit"
+      "englishRequirement",
+      "salaryRange",
+      "remoteFit",
+      "remoteScope",
+      "roleFocus",
+      "spanishFit"
     ]
   }
 };
@@ -186,11 +232,14 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
             "Eres un agente de matching laboral para Oswaldo Alvarez.",
             "Tu tarea es leer la oferta, compararla contra su CV y preferencias, y decidir si vale la pena enviarla.",
             "Perfil fuerte: Frontend/Mobile con React, React Native, TypeScript, fintech, crypto, healthcare y ownership de producto.",
-            "Penaliza fuerte ofertas fullstack cuando el trabajo real sea principalmente backend, APIs, Java, Python, Node backend, DevOps o arquitectura backend.",
-            "Prioriza React Native, React, frontend, mobile, web, design systems, producto y trabajo remoto.",
-            "Prioriza ofertas en espanol, LATAM o Europa. Para Europa acepta ingles B1/B2/intermedio y descarta C1/C2/advanced/fluent/native si es requisito.",
-            "Si no hay suficiente informacion, marca la oferta como revisar y explica las dudas.",
-            "Se estricto: una oferta que menciona React pero pide mucho backend no debe pasar como aplicar."
+            "Solo deben enviarse ofertas con foco frontend/mobile fuerte.",
+            "Fullstack solo sirve si es fullstack frontend con React, React Native o Next.js; backend dominante se descarta.",
+            "La oferta debe ser full remota y no exigir vivir en un pais especifico.",
+            "La oferta debe estar en espanol o tener senal clara de equipo/mercado hispanohablante.",
+            "Debes verificar ingles requerido: none/not_specified/b1/b2 son aceptables; c1/c2/advanced/fluent/native se descartan.",
+            "Extrae salaryRange si la oferta muestra salario, rango, hourly rate o moneda. Si no aparece, usa No indicado.",
+            "Si no puedes verificar un requisito critico, no marques aplicar.",
+            "Se estricto: recommendation aplicar solo si compatibilityScore >= 90 y realmente conviene postular."
           ].join(" ")
         },
         {
@@ -225,10 +274,20 @@ export const shouldSendAiMatchedJob = (job: MatchedJob): boolean => {
   const evaluation = job.aiEvaluation;
   if (!evaluation) return true;
 
+  const acceptedEnglish = ["none", "not_specified", "b1", "b2"].includes(evaluation.englishRequirement);
+  const acceptedRemote = ["worldwide", "region_restricted"].includes(evaluation.remoteScope);
+  const acceptedRole = ["frontend", "mobile", "fullstack_frontend"].includes(evaluation.roleFocus);
+  const acceptedSpanish = ["spanish_offer", "spanish_speaking_team"].includes(evaluation.spanishFit);
+
   return (
-    evaluation.recommendation !== "descartar" &&
+    evaluation.recommendation === "aplicar" &&
     evaluation.compatibilityScore >= config.aiMinCompatibilityScore &&
-    !(evaluation.frontendFit === "bajo" && evaluation.backendWeight === "alto")
+    evaluation.frontendFit === "alto" &&
+    evaluation.backendWeight !== "alto" &&
+    acceptedEnglish &&
+    acceptedRemote &&
+    acceptedRole &&
+    acceptedSpanish
   );
 };
 
@@ -259,7 +318,12 @@ export const evaluateJobsWithAi = async (jobs: MatchedJob[], cvText: string): Pr
           frontendFit: "medio",
           backendWeight: "medio",
           englishLevel: "No evaluado",
-          remoteFit: "No evaluado"
+          englishRequirement: "unknown",
+          salaryRange: "No indicado",
+          remoteFit: "No evaluado",
+          remoteScope: "unknown",
+          roleFocus: "other",
+          spanishFit: "not_specified"
         }
       });
     }
