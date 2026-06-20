@@ -347,6 +347,35 @@ describe("shouldSendAiMatchedJob", () => {
 
     expect(shouldSend).toBe(true);
   });
+
+  it("no bloquea ofertas de pasteleria de Yuliana por clasificacion IA estricta", () => {
+    const shouldSend = shouldSendAiMatchedJob(
+      {
+        ...baseJob,
+        title: "Pastelero/a - con experiencia",
+        score: 20,
+        reasons: ["Senales objetivo: pasteleria"],
+        aiEvaluation: {
+          ...goodEvaluation,
+          compatibilityScore: 0,
+          recommendation: "descartar",
+          summary: "Oferta de pasteleria en Caracas que conviene revisar manualmente.",
+          matchReasons: ["Pasteleria", "Caracas"],
+          concerns: ["Confirmar requisitos de experiencia"],
+          frontendFit: "bajo",
+          backendWeight: "alto",
+          englishRequirement: "unknown",
+          remoteFit: "Presencial en Caracas",
+          remoteScope: "onsite",
+          roleFocus: "backend",
+          spanishFit: "not_specified"
+        }
+      } as MatchedJob,
+      sisterBakeryProfile
+    );
+
+    expect(shouldSend).toBe(true);
+  });
 });
 
 describe("extractVisiblePageDate", () => {

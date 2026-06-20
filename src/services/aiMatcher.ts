@@ -300,6 +300,7 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
   if (!evaluation) return true;
 
   const guardrails = profile?.sendGuardrails;
+  const isSisterBakeryProfile = profile?.id === "sister-bakery-caracas";
   const minScore = profile?.aiMinCompatibilityScore ?? config.aiMinCompatibilityScore;
   const acceptedEnglish = (guardrails?.acceptedEnglishRequirements ?? ["none", "not_specified", "b1", "b2"]).includes(
     evaluation.englishRequirement
@@ -307,9 +308,9 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
   const acceptedRemote = (guardrails?.acceptedRemoteScopes ?? ["worldwide", "region_restricted"]).includes(
     evaluation.remoteScope
   );
-  const acceptedRole = (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(
-    evaluation.roleFocus
-  );
+  const acceptedRole =
+    isSisterBakeryProfile ||
+    (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(evaluation.roleFocus);
   const acceptedSpanish = guardrails?.requireSpanishSignal === false
     ? true
     : (guardrails?.acceptedSpanishFits ?? ["spanish_offer", "spanish_speaking_team"]).includes(evaluation.spanishFit);
@@ -325,7 +326,9 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
   const acceptsReviewRecommendation =
     profile?.id === "mom-nursing-caracas" || profile?.id === "sister-bakery-caracas";
   const acceptedRecommendation =
-    acceptsReviewRecommendation
+    isSisterBakeryProfile
+      ? true
+      : acceptsReviewRecommendation
       ? ["aplicar", "revisar"].includes(evaluation.recommendation)
       : evaluation.recommendation === "aplicar";
 
@@ -339,6 +342,56 @@ export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): b
     acceptedRole &&
     acceptedSpanish
   );
+};
+
+export const getAiRejectionReasons = (job: MatchedJob, profile?: JobProfile): string[] => {
+  const evaluation = job.aiEvaluation;
+  if (!evaluation || shouldSendAiMatchedJob(job, profile)) return [];
+
+  const guardrails = profile?.sendGuardrails;
+  const minScore = profile?.aiMinCompatibilityScore ?? config.aiMinCompatibilityScore;
+  const reasons: string[] = [];
+
+  if (profile?.id === "mom-nursing-caracas" && evaluation.recommendation === "descartar") {
+    reasons.push("IA recomendo descartar");
+  } else if (profile?.id !== "sister-bakery-caracas" && evaluation.recommendation !== "aplicar") {
+    reasons.push(`recomendacion IA ${evaluation.recommendation}`);
+  }
+
+  if (evaluation.compatibilityScore < minScore) {
+    reasons.push(`score ${evaluation.compatibilityScore} menor a ${minScore}`);
+  }
+
+  if (profile?.sourceMode !== "serpapi_only") {
+    const acceptedFrontendFit = evaluation.frontendFit === "alto" || evaluation.roleFocus === "fullstack_frontend";
+    if (!acceptedFrontendFit) reasons.push(`fit principal ${evaluation.frontendFit}`);
+  }
+
+  if (guardrails?.rejectHighBackend !== false && evaluation.backendWeight === "alto") {
+    reasons.push("peso backend alto");
+  }
+
+  const acceptedEnglish = (guardrails?.acceptedEnglishRequirements ?? ["none", "not_specified", "b1", "b2"]).includes(
+    evaluation.englishRequirement
+  );
+  if (!acceptedEnglish) reasons.push(`ingles ${evaluation.englishRequirement}`);
+
+  const acceptedRemote = (guardrails?.acceptedRemoteScopes ?? ["worldwide", "region_restricted"]).includes(
+    evaluation.remoteScope
+  );
+  if (!acceptedRemote) reasons.push(`alcance remoto ${evaluation.remoteScope}`);
+
+  const acceptedRole =
+    profile?.id === "sister-bakery-caracas" ||
+    (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(evaluation.roleFocus);
+  if (!acceptedRole) reasons.push(`rol IA ${evaluation.roleFocus}`);
+
+  const acceptedSpanish = guardrails?.requireSpanishSignal === false
+    ? true
+    : (guardrails?.acceptedSpanishFits ?? ["spanish_offer", "spanish_speaking_team"]).includes(evaluation.spanishFit);
+  if (!acceptedSpanish) reasons.push(`senal espanol ${evaluation.spanishFit}`);
+
+  return reasons.length > 0 ? reasons : ["no cumplio guardrails"];
 };
 
 export const evaluateJobsWithAi = async (

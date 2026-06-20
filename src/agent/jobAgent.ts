@@ -1,6 +1,6 @@
 import { config, momNursingProfile, oswaldoProfile, sisterBakeryProfile } from "../config.js";
 import { dedupeJobs, isRecent } from "../filters/normalize.js";
-import { evaluateJobsWithAi, shouldSendAiMatchedJob } from "../services/aiMatcher.js";
+import { evaluateJobsWithAi, getAiRejectionReasons, shouldSendAiMatchedJob } from "../services/aiMatcher.js";
 import { fetchCvText } from "../services/cv.js";
 import { renderHtmlDigest, renderTextDigest } from "../services/digest.js";
 import { sendEmail } from "../services/email.js";
@@ -73,14 +73,19 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
   console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
   console.log(`- Seleccionadas para email: ${digestJobs.length}`);
-  for (const job of rejectedByAiJobs.slice(0, 10)) {
+  for (const job of rejectedByAiJobs) {
     const evaluation = job.aiEvaluation;
     if (!evaluation) continue;
+    const rejectionReasons = getAiRejectionReasons(job, profile);
     console.log(
       `Oferta evaluada no enviada (${profile.name}): ${job.title} ` +
         `(recomendacion=${evaluation.recommendation}, score=${evaluation.compatibilityScore}, ` +
-        `rol=${evaluation.roleFocus}, fit=${evaluation.frontendFit})`
+        `rol=${evaluation.roleFocus}, fit=${evaluation.frontendFit}, ` +
+        `motivo=${rejectionReasons.join(" | ") || "no indicado"})`
     );
+    if (evaluation.concerns.length > 0) {
+      console.log(`  Dudas/Riesgos IA: ${evaluation.concerns.join(" | ")}`);
+    }
   }
 
   if (digestJobs.length === 0 && !config.sendEmptyDigest) {
