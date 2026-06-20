@@ -41,8 +41,14 @@ jobs:
           SMTP_SECURE: ${{ secrets.SMTP_SECURE }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          ENABLE_AI_MATCHING: ${{ vars.ENABLE_AI_MATCHING || 'false' }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          CV_URL: ${{ vars.CV_URL || 'https://oswaldo-virtual-cv.vercel.app/es' }}
+          AI_MAX_CANDIDATES: ${{ vars.AI_MAX_CANDIDATES || '30' }}
+          AI_MIN_COMPATIBILITY_SCORE: ${{ vars.AI_MIN_COMPATIBILITY_SCORE || '70' }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '3' }}
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
           SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'false' }}

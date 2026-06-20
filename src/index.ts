@@ -1,6 +1,8 @@
 import { config } from "./config.js";
 import { matchJob } from "./filters/matchJob.js";
 import { dedupeJobs, isRecent } from "./filters/normalize.js";
+import { evaluateJobsWithAi, shouldSendAiMatchedJob } from "./services/aiMatcher.js";
+import { fetchCvText } from "./services/cv.js";
 import { renderHtmlDigest, renderTextDigest } from "./services/digest.js";
 import { sendEmail } from "./services/email.js";
 import { keepUnseenJobs, markJobsAsSeen } from "./services/state.js";
@@ -62,7 +64,13 @@ const main = async (): Promise<void> => {
     .map(matchJob)
     .filter((job): job is MatchedJob => Boolean(job));
   const unseenJobs = await keepUnseenJobs(rankJobs(matchedJobs));
-  const digestJobs = unseenJobs.slice(0, config.maxJobsPerEmail);
+  const jobsToEvaluate = config.enableAiMatching
+    ? unseenJobs.slice(0, config.aiMaxCandidates)
+    : unseenJobs.slice(0, config.maxJobsPerEmail);
+  const evaluatedJobs = config.enableAiMatching
+    ? await evaluateJobsWithAi(jobsToEvaluate, await fetchCvText(config.cvUrl))
+    : jobsToEvaluate;
+  const digestJobs = rankJobs(evaluatedJobs.filter(shouldSendAiMatchedJob)).slice(0, config.maxJobsPerEmail);
 
   console.log("Resumen de busqueda:");
   for (const stat of stats) {
@@ -72,8 +80,14 @@ const main = async (): Promise<void> => {
   console.log(`- Recientes (${config.lookbackDays} dias): ${recentJobs.length}`);
   console.log(`- Pasaron filtros: ${matchedJobs.length}`);
   console.log(`- Nuevas no enviadas antes: ${unseenJobs.length}`);
+  console.log(`- Evaluadas por IA: ${config.enableAiMatching ? evaluatedJobs.length : 0}`);
+  console.log(`- Seleccionadas para email: ${digestJobs.length}`);
 
   if (digestJobs.length === 0 && !config.sendEmptyDigest) {
+    if (config.enableAiMatching && !config.dryRun) {
+      await markJobsAsSeen(evaluatedJobs);
+    }
+
     console.log("No hay ofertas nuevas para enviar.");
     return;
   }
@@ -87,7 +101,7 @@ const main = async (): Promise<void> => {
   });
 
   if (!config.dryRun) {
-    await markJobsAsSeen(digestJobs);
+    await markJobsAsSeen(config.enableAiMatching ? evaluatedJobs : digestJobs);
   }
 
   console.log(`Proceso finalizado. Ofertas enviadas: ${digestJobs.length}`);

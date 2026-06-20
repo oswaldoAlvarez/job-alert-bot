@@ -43,49 +43,68 @@ const atomLinkToString = (link?: AtomEntry["link"]): string | undefined => {
   return linkObject?.["@_href"];
 };
 
+const isValidHttpUrl = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export const fetchRssJobs = async (feedUrls: string[]): Promise<JobPosting[]> => {
   const jobs = await Promise.all(
     feedUrls.map(async (feedUrl) => {
-      const response = await fetch(feedUrl);
-
-      if (!response.ok) {
-        throw new Error(`${feedUrl} returned ${response.status}`);
+      if (!isValidHttpUrl(feedUrl)) {
+        console.warn(`RSS ignorado por URL invalida: ${feedUrl}`);
+        return [];
       }
 
-      const xml = await response.text();
-      const parsed = parser.parse(xml) as {
-        rss?: { channel?: { item?: RssItem | RssItem[]; title?: string } };
-        feed?: { entry?: AtomEntry | AtomEntry[]; title?: string };
-      };
+      try {
+        const response = await fetch(feedUrl);
 
-      const source = parsed.rss?.channel?.title ?? parsed.feed?.title ?? new URL(feedUrl).hostname;
-      const rssItems = asArray(parsed.rss?.channel?.item).map((item) => ({
-        id: `rss-${guidToString(item.guid) ?? item.link ?? item.title}`,
-        source,
-        title: item.title ?? "Untitled role",
-        company: source,
-        url: item.link ?? feedUrl,
-        description: stripHtml(item["content:encoded"] ?? item.description),
-        tags: [],
-        publishedAt: parseDate(item.pubDate)
-      }));
+        if (!response.ok) {
+          throw new Error(`${feedUrl} returned ${response.status}`);
+        }
 
-      const atomItems = asArray(parsed.feed?.entry).map((item) => {
-        const url = atomLinkToString(item.link) ?? feedUrl;
+        const xml = await response.text();
+        const parsed = parser.parse(xml) as {
+          rss?: { channel?: { item?: RssItem | RssItem[]; title?: string } };
+          feed?: { entry?: AtomEntry | AtomEntry[]; title?: string };
+        };
 
-        return {
-          id: `atom-${item.id ?? url ?? item.title}`,
+        const source = parsed.rss?.channel?.title ?? parsed.feed?.title ?? new URL(feedUrl).hostname;
+        const rssItems = asArray(parsed.rss?.channel?.item).map((item) => ({
+          id: `rss-${guidToString(item.guid) ?? item.link ?? item.title}`,
           source,
           title: item.title ?? "Untitled role",
           company: source,
-          url,
-          description: stripHtml(item.content ?? item.summary),
+          url: item.link ?? feedUrl,
+          description: stripHtml(item["content:encoded"] ?? item.description),
           tags: [],
-          publishedAt: parseDate(item.published ?? item.updated)
-        };
-      });
+          publishedAt: parseDate(item.pubDate)
+        }));
 
-      return [...rssItems, ...atomItems];
+        const atomItems = asArray(parsed.feed?.entry).map((item) => {
+          const url = atomLinkToString(item.link) ?? feedUrl;
+
+          return {
+            id: `atom-${item.id ?? url ?? item.title}`,
+            source,
+            title: item.title ?? "Untitled role",
+            company: source,
+            url,
+            description: stripHtml(item.content ?? item.summary),
+            tags: [],
+            publishedAt: parseDate(item.published ?? item.updated)
+          };
+        });
+
+        return [...rssItems, ...atomItems];
+      } catch (error) {
+        console.warn(`RSS fallido: ${feedUrl}. ${error}`);
+        return [];
+      }
     })
   );
 

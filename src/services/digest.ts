@@ -22,6 +22,24 @@ export const renderTextDigest = (jobs: MatchedJob[]): string => {
         `Publicado: ${formatDate(job.publishedAt)}`,
         job.salary ? `Salario: ${job.salary}` : undefined,
         `Motivo: ${job.reasons.join(" | ")}`,
+        job.aiEvaluation
+          ? [
+              `Compatibilidad IA: ${job.aiEvaluation.compatibilityScore}/100 (${job.aiEvaluation.recommendation})`,
+              `Resumen IA: ${job.aiEvaluation.summary}`,
+              `Fit Frontend: ${job.aiEvaluation.frontendFit}`,
+              `Peso Backend: ${job.aiEvaluation.backendWeight}`,
+              `Ingles: ${job.aiEvaluation.englishLevel}`,
+              `Remoto/Region: ${job.aiEvaluation.remoteFit}`,
+              job.aiEvaluation.matchReasons.length > 0
+                ? `Por que matchea: ${job.aiEvaluation.matchReasons.join(" | ")}`
+                : undefined,
+              job.aiEvaluation.concerns.length > 0
+                ? `Dudas/Riesgos: ${job.aiEvaluation.concerns.join(" | ")}`
+                : undefined
+            ]
+              .filter(Boolean)
+              .join("\n")
+          : undefined,
         `Link: ${job.url}`
       ]
         .filter(Boolean)
@@ -46,6 +64,28 @@ export const renderHtmlDigest = (jobs: MatchedJob[]): string => {
           <p><strong>Publicado:</strong> ${formatDate(job.publishedAt)}</p>
           ${job.salary ? `<p><strong>Salario:</strong> ${job.salary}</p>` : ""}
           <p><strong>Motivo:</strong> ${job.reasons.join(" | ")}</p>
+          ${
+            job.aiEvaluation
+              ? `
+                <p><strong>Compatibilidad IA:</strong> ${job.aiEvaluation.compatibilityScore}/100 (${job.aiEvaluation.recommendation})</p>
+                <p><strong>Resumen IA:</strong> ${job.aiEvaluation.summary}</p>
+                <p><strong>Fit Frontend:</strong> ${job.aiEvaluation.frontendFit}</p>
+                <p><strong>Peso Backend:</strong> ${job.aiEvaluation.backendWeight}</p>
+                <p><strong>Ingles:</strong> ${job.aiEvaluation.englishLevel}</p>
+                <p><strong>Remoto/Region:</strong> ${job.aiEvaluation.remoteFit}</p>
+                ${
+                  job.aiEvaluation.matchReasons.length > 0
+                    ? `<p><strong>Por que matchea:</strong> ${job.aiEvaluation.matchReasons.join(" | ")}</p>`
+                    : ""
+                }
+                ${
+                  job.aiEvaluation.concerns.length > 0
+                    ? `<p><strong>Dudas/Riesgos:</strong> ${job.aiEvaluation.concerns.join(" | ")}</p>`
+                    : ""
+                }
+              `
+              : ""
+          }
         </li>
       `
     )

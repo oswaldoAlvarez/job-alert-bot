@@ -13,8 +13,9 @@ Cada ejecución del bot hace este flujo:
 2. Normaliza todas las ofertas a un formato comun.
 3. Filtra por tecnologia, seniority, region, modalidad e idioma.
 4. Descarta ofertas ya enviadas anteriormente.
-5. Genera un resumen en texto y HTML.
-6. Envia el resumen por email usando SMTP.
+5. Si esta activada la IA, compara cada oferta contra el CV virtual.
+6. Genera un resumen en texto y HTML.
+7. Envia el resumen por email usando SMTP.
 ```
 
 El bot puede ejecutarse de dos formas:
@@ -38,6 +39,30 @@ Para Europa aplica una regla especial:
 - Si pide ingles C1, C2, advanced, fluent o native, se descarta.
 
 Tambien descarta ofertas Junior, Trainee, Intern, Internship, Practicas o Becario.
+
+## Evaluacion Con IA
+
+El bot puede usar IA para leer cada oferta y compararla contra el CV virtual:
+
+```txt
+https://oswaldo-virtual-cv.vercel.app/es
+```
+
+Esta etapa sirve para evitar falsos positivos como ofertas Fullstack que mencionan React pero en realidad son mas backend que frontend.
+
+Cuando `ENABLE_AI_MATCHING=true`, cada oferta prefiltrada se evalua con estos criterios:
+
+- Compatibilidad general de 0 a 100.
+- Recomendacion: aplicar, revisar o descartar.
+- Resumen de la oferta en espanol.
+- Motivos concretos por los que matchea.
+- Dudas o riesgos.
+- Fit Frontend: alto, medio o bajo.
+- Peso Backend: alto, medio o bajo.
+- Nivel de ingles detectado.
+- Compatibilidad con remoto, LATAM o Europa.
+
+La IA descarta del email las ofertas con recomendacion `descartar`, score menor a `AI_MIN_COMPATIBILITY_SCORE`, o fit frontend bajo con peso backend alto.
 
 ## Fuentes Incluidas
 
@@ -91,6 +116,8 @@ job-alert-bot/
       matchJob.ts
       normalize.ts
     services/
+      aiMatcher.ts
+      cv.ts
       digest.ts
       email.ts
       state.ts
@@ -128,6 +155,14 @@ Envia el email usando SMTP.
 
 Genera el resumen del correo en texto y HTML.
 
+`src/services/aiMatcher.ts`
+
+Evalua cada oferta con IA contra el CV y decide si conviene aplicarla, revisarla o descartarla.
+
+`src/services/cv.ts`
+
+Lee el CV virtual publico para usarlo como contexto de matching.
+
 `src/services/state.ts`
 
 Guarda ofertas ya enviadas en `data/seen-jobs.json` para no repetirlas.
@@ -160,7 +195,13 @@ SMTP_USER=tu-email@gmail.com
 SMTP_PASSWORD=app-password-de-gmail
 EMAIL_FROM=tu-email@gmail.com
 EMAIL_TO=destino@gmail.com
+OPENAI_API_KEY=
 
+ENABLE_AI_MATCHING=false
+OPENAI_MODEL=gpt-5-mini
+CV_URL=https://oswaldo-virtual-cv.vercel.app/es
+AI_MAX_CANDIDATES=30
+AI_MIN_COMPATIBILITY_SCORE=70
 LOOKBACK_DAYS=3
 MAX_JOBS_PER_EMAIL=20
 SEND_EMPTY_DIGEST=false
@@ -172,6 +213,8 @@ EXTRA_RSS_FEEDS=
 ```
 
 `SMTP_PASSWORD` debe ser una App Password de Gmail, no la contrasena normal de la cuenta.
+
+`OPENAI_API_KEY` es necesaria solo si activas `ENABLE_AI_MATCHING=true`.
 
 ## Ejecucion Manual
 
@@ -195,6 +238,8 @@ Resumen de busqueda:
 - Recientes: X
 - Pasaron filtros: X
 - Nuevas no enviadas antes: X
+- Evaluadas por IA: X
+- Seleccionadas para email: X
 ```
 
 Para ejecutar enviando correo real:
@@ -237,6 +282,7 @@ SMTP_USER
 SMTP_PASSWORD
 EMAIL_FROM
 EMAIL_TO
+OPENAI_API_KEY
 ```
 
 Valores tipicos para Gmail:
@@ -249,6 +295,7 @@ SMTP_USER = tu-email@gmail.com
 SMTP_PASSWORD = app-password-de-gmail
 EMAIL_FROM = tu-email@gmail.com
 EMAIL_TO = destino@gmail.com
+OPENAI_API_KEY = sk-...
 ```
 
 Variables opcionales en GitHub Actions:
@@ -256,6 +303,11 @@ Variables opcionales en GitHub Actions:
 ```txt
 LOOKBACK_DAYS
 MAX_JOBS_PER_EMAIL
+ENABLE_AI_MATCHING
+OPENAI_MODEL
+CV_URL
+AI_MAX_CANDIDATES
+AI_MIN_COMPATIBILITY_SCORE
 SEND_EMPTY_DIGEST
 REQUIRE_SPANISH_SIGNAL
 REQUIRE_REGION_SIGNAL

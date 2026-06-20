@@ -18,6 +18,12 @@ const booleanFromEnv = (name: string, fallback: boolean): boolean => {
 export const config = {
   lookbackDays: numberFromEnv("LOOKBACK_DAYS", 3),
   maxJobsPerEmail: numberFromEnv("MAX_JOBS_PER_EMAIL", 20),
+  aiMaxCandidates: numberFromEnv("AI_MAX_CANDIDATES", 30),
+  aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 70),
+  enableAiMatching: booleanFromEnv("ENABLE_AI_MATCHING", Boolean(process.env.OPENAI_API_KEY)),
+  openAiApiKey: process.env.OPENAI_API_KEY,
+  openAiModel: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+  cvUrl: process.env.CV_URL ?? "https://oswaldo-virtual-cv.vercel.app/es",
   sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", false),
   dryRun: booleanFromEnv("DRY_RUN", false),
   requireSpanishSignal: booleanFromEnv("REQUIRE_SPANISH_SIGNAL", true),

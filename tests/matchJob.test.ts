@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { matchJob } from "../src/filters/matchJob.js";
+import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
 import type { JobPosting, MatchedJob } from "../src/types.js";
 
@@ -120,5 +121,53 @@ describe("renderTextDigest", () => {
 
     expect(digest).toContain("Senior React Native Developer");
     expect(digest).toContain("https://example.com/job");
+  });
+
+  it("incluye evaluacion IA cuando existe", () => {
+    const digest = renderTextDigest([
+      {
+        ...baseJob,
+        score: 86,
+        reasons: ["Tecnologia: react native"],
+        aiEvaluation: {
+          compatibilityScore: 86,
+          recommendation: "aplicar",
+          summary: "Buen match mobile/frontend.",
+          matchReasons: ["React Native", "Fintech"],
+          concerns: ["Confirmar salario"],
+          frontendFit: "alto",
+          backendWeight: "bajo",
+          englishLevel: "B2",
+          remoteFit: "LATAM remoto"
+        }
+      } as MatchedJob
+    ]);
+
+    expect(digest).toContain("Compatibilidad IA: 86/100");
+    expect(digest).toContain("Buen match mobile/frontend.");
+    expect(digest).toContain("Peso Backend: bajo");
+  });
+});
+
+describe("shouldSendAiMatchedJob", () => {
+  it("descarta ofertas con poco fit frontend y alto peso backend", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 80,
+      reasons: ["Tecnologia: react"],
+      aiEvaluation: {
+        compatibilityScore: 80,
+        recommendation: "revisar",
+        summary: "Oferta fullstack con foco backend.",
+        matchReasons: ["Menciona React"],
+        concerns: ["Backend dominante"],
+        frontendFit: "bajo",
+        backendWeight: "alto",
+        englishLevel: "No indicado",
+        remoteFit: "Remoto"
+      }
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(false);
   });
 });
