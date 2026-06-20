@@ -1,6 +1,6 @@
 import { config } from "../config.js";
 import { stripHtml } from "../filters/normalize.js";
-import type { AiJobEvaluation, MatchedJob } from "../types.js";
+import type { AiJobEvaluation, JobProfile, MatchedJob } from "../types.js";
 
 class AiProviderError extends Error {
   constructor(
@@ -135,24 +135,14 @@ const extractJson = (value: string): unknown => {
   return JSON.parse(trimmed.slice(start, end + 1));
 };
 
-const buildPrompt = (job: MatchedJob, cvText: string): string => {
+const buildPrompt = (job: MatchedJob, cvText: string, profile: JobProfile): string => {
   const description = stripHtml(job.description ?? "").slice(0, 6000);
 
   return [
     "PREFERENCIAS DE BUSQUEDA:",
     [
-      "- Roles objetivo: SSR/SR React Native, React, Frontend, Mobile, Frontend Engineer.",
-      "- Perfil principal: frontend/mobile con React, React Native, Next.js y TypeScript.",
-      "- No asumir experiencia backend fuerte. Node.js o Python basico/secundario puede aceptarse si el foco de la vacante sigue siendo frontend/mobile.",
-      "- Aceptar fullstack solo si el trabajo real es mayormente frontend y usa React, React Native o Next.js.",
-      "- Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, .NET, PHP, Ruby, Go, data engineering o arquitectura backend.",
-      "- La oferta debe ser full remota. Puede ser mundial, LATAM, Hispanoamerica, Espana o Europa, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
-      "- Priorizar LATAM, Hispanoamerica y Espana. Europa solo sirve si la oferta esta en espanol o indica equipo/mercado hispanohablante.",
-      "- Descartar ofertas de Brasil o que pidan portugues.",
-      "- Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
-      "- Verificar si el ingles es requerido. Si requiere C1, C2, advanced, fluent, native o similar, descartar. Si no pide ingles o pide maximo B1/B2/intermedio, puede pasar.",
-      "- Extraer rango salarial si aparece en titulo, descripcion, tags o metadata. Si no aparece, usar No indicado.",
-      "- Solo recomendar aplicar si la compatibilidad real es 80 o mas y puedes explicar por que es buen fit para postular."
+      ...profile.promptPreferences.map((preference) => `- ${preference}`),
+      `- Solo recomendar aplicar si la compatibilidad real es ${profile.aiMinCompatibilityScore} o mas y puedes explicar por que es buen fit para postular.`
     ].join("\n"),
     "",
     "CV DEL CANDIDATO:",
@@ -236,7 +226,7 @@ const responseFormat = {
   }
 };
 
-export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promise<MatchedJob> => {
+export const evaluateJobWithAi = async (job: MatchedJob, cvText: string, profile: JobProfile): Promise<MatchedJob> => {
   if (!config.openAiApiKey) {
     throw new Error("OPENAI_API_KEY no esta configurada");
   }
@@ -256,25 +246,18 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
         {
           role: "system",
           content: [
-            "Eres un agente de matching laboral para Oswaldo Alvarez.",
-            "Tu tarea es leer la oferta, compararla contra su CV y preferencias, y decidir si vale la pena enviarla.",
-            "Perfil fuerte: Frontend/Mobile con React, React Native, Next.js, TypeScript, fintech, crypto, healthcare y ownership de producto.",
-            "Solo deben enviarse ofertas con foco frontend/mobile o fullstack frontend.",
-            "Node.js o Python basico pueden ser aceptables si son secundarios; backend dominante se descarta.",
-            "Fullstack solo sirve si es fullstack frontend con React, React Native o Next.js.",
-            "La oferta debe ser full remota y no exigir vivir en un pais especifico.",
-            "Prioriza LATAM, Hispanoamerica y Espana; Europa sirve si esta en espanol o tiene equipo/mercado hispanohablante.",
-            "Descarta Brasil, portugues, hibrido, onsite y pais especifico obligatorio.",
-            "La oferta debe estar en espanol o tener senal clara de equipo/mercado hispanohablante.",
-            "Debes verificar ingles requerido: none/not_specified/b1/b2 son aceptables; c1/c2/advanced/fluent/native se descartan.",
+            "Eres un agente de matching laboral especializado.",
+            `Estas evaluando ofertas para el perfil: ${profile.name}.`,
+            "Tu tarea es leer la oferta, compararla contra su CV/perfil y preferencias, y decidir si vale la pena enviarla.",
+            ...profile.promptPreferences,
             "Extrae salaryRange si la oferta muestra salario, rango, hourly rate o moneda. Si no aparece, usa No indicado.",
             "Si no puedes verificar un requisito critico, no marques aplicar.",
-            "Se criterioso: recommendation aplicar solo si compatibilityScore >= 80 y realmente conviene postular."
+            `Se criterioso: recommendation aplicar solo si compatibilityScore >= ${profile.aiMinCompatibilityScore} y realmente conviene postular.`
           ].join(" ")
         },
         {
           role: "user",
-          content: buildPrompt(job, cvText)
+          content: buildPrompt(job, cvText, profile)
         }
       ],
       reasoning: {
@@ -312,21 +295,38 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
   };
 };
 
-export const shouldSendAiMatchedJob = (job: MatchedJob): boolean => {
+export const shouldSendAiMatchedJob = (job: MatchedJob, profile?: JobProfile): boolean => {
   const evaluation = job.aiEvaluation;
   if (!evaluation) return true;
 
-  const acceptedEnglish = ["none", "not_specified", "b1", "b2"].includes(evaluation.englishRequirement);
-  const acceptedRemote = ["worldwide", "region_restricted"].includes(evaluation.remoteScope);
-  const acceptedRole = ["frontend", "mobile", "fullstack_frontend"].includes(evaluation.roleFocus);
-  const acceptedSpanish = ["spanish_offer", "spanish_speaking_team"].includes(evaluation.spanishFit);
+  const guardrails = profile?.sendGuardrails;
+  const minScore = profile?.aiMinCompatibilityScore ?? config.aiMinCompatibilityScore;
+  const acceptedEnglish = (guardrails?.acceptedEnglishRequirements ?? ["none", "not_specified", "b1", "b2"]).includes(
+    evaluation.englishRequirement
+  );
+  const acceptedRemote = (guardrails?.acceptedRemoteScopes ?? ["worldwide", "region_restricted"]).includes(
+    evaluation.remoteScope
+  );
+  const acceptedRole = (guardrails?.acceptedRoles ?? ["frontend", "mobile", "fullstack_frontend"]).includes(
+    evaluation.roleFocus
+  );
+  const acceptedSpanish = guardrails?.requireSpanishSignal === false
+    ? true
+    : (guardrails?.acceptedSpanishFits ?? ["spanish_offer", "spanish_speaking_team"]).includes(evaluation.spanishFit);
   const acceptedFrontendFit = evaluation.frontendFit === "alto" || evaluation.roleFocus === "fullstack_frontend";
+  const acceptedFit =
+    profile?.sourceMode === "serpapi_only"
+      ? true
+      : guardrails?.allowMediumFrontendForFullstack === false
+        ? evaluation.frontendFit === "alto"
+        : acceptedFrontendFit;
+  const acceptedBackend = guardrails?.rejectHighBackend === false ? true : evaluation.backendWeight !== "alto";
 
   return (
     evaluation.recommendation === "aplicar" &&
-    evaluation.compatibilityScore >= config.aiMinCompatibilityScore &&
-    acceptedFrontendFit &&
-    evaluation.backendWeight !== "alto" &&
+    evaluation.compatibilityScore >= minScore &&
+    acceptedFit &&
+    acceptedBackend &&
     acceptedEnglish &&
     acceptedRemote &&
     acceptedRole &&
@@ -334,7 +334,11 @@ export const shouldSendAiMatchedJob = (job: MatchedJob): boolean => {
   );
 };
 
-export const evaluateJobsWithAi = async (jobs: MatchedJob[], cvText: string): Promise<MatchedJob[]> => {
+export const evaluateJobsWithAi = async (
+  jobs: MatchedJob[],
+  cvText: string,
+  profile: JobProfile
+): Promise<MatchedJob[]> => {
   if (!config.openAiApiKey) {
     throw new Error("ENABLE_AI_MATCHING=true requiere configurar OPENAI_API_KEY");
   }
@@ -343,7 +347,7 @@ export const evaluateJobsWithAi = async (jobs: MatchedJob[], cvText: string): Pr
 
   for (const job of jobs) {
     try {
-      evaluated.push(await evaluateJobWithAi(job, cvText));
+      evaluated.push(await evaluateJobWithAi(job, cvText, profile));
     } catch (error) {
       if (isFatalAiError(error)) {
         throw error;
@@ -353,7 +357,7 @@ export const evaluateJobsWithAi = async (jobs: MatchedJob[], cvText: string): Pr
       evaluated.push({
         ...job,
         aiEvaluation: {
-          compatibilityScore: config.aiMinCompatibilityScore,
+          compatibilityScore: profile.aiMinCompatibilityScore,
           recommendation: "revisar",
           summary: "No se pudo evaluar con IA. Se mantiene como revisar para no perder una posible oportunidad.",
           matchReasons: [],

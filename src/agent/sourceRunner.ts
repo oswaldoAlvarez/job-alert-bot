@@ -6,14 +6,35 @@ import { fetchRemoteOkJobs } from "../sources/remoteok.js";
 import { fetchRemotiveJobs } from "../sources/remotive.js";
 import { fetchRssJobs } from "../sources/rss.js";
 import { fetchSerpApiJobs } from "../sources/serpapi.js";
-import type { JobPosting } from "../types.js";
+import type { JobPosting, JobProfile } from "../types.js";
 
 export type SourceResult = {
   jobs: JobPosting[];
   stats: string[];
 };
 
-export const fetchAllJobs = async (): Promise<SourceResult> => {
+export const fetchAllJobs = async (profile?: JobProfile): Promise<SourceResult> => {
+  if (profile?.sourceMode === "serpapi_only") {
+    if (!config.enableSerpApi) {
+      return { jobs: [], stats: ["Google Jobs / LinkedIn / Job boards: omitido porque ENABLE_SERPAPI=false"] };
+    }
+
+    try {
+      const jobs = await fetchSerpApiJobs({
+        profileId: profile.id,
+        queries: profile.serpApiQueries,
+        location: profile.serpApiLocation,
+        runEveryHours: profile.serpApiRunEveryHours,
+        maxQueriesPerRun: profile.serpApiMaxQueriesPerRun
+      });
+
+      return { jobs, stats: [`Google Jobs / LinkedIn / Job boards: ${jobs.length} ofertas recibidas`] };
+    } catch (error) {
+      console.warn(`Fuente fallida: Google Jobs / LinkedIn / Job boards. ${error}`);
+      return { jobs: [], stats: [`Google Jobs / LinkedIn / Job boards: fallo (${error})`] };
+    }
+  }
+
   const rssFeeds = [...config.defaultRssFeeds, ...config.extraRssFeeds];
   const sourceCalls = [
     { name: "Remotive", run: fetchRemotiveJobs },

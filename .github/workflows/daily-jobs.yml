@@ -44,6 +44,8 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+          MOM_EMAIL_TO: ${{ secrets.MOM_EMAIL_TO }}
+          MOM_CV_TEXT: ${{ secrets.MOM_CV_TEXT }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ENABLE_AI_MATCHING: ${{ vars.ENABLE_AI_MATCHING || 'true' }}
@@ -63,3 +65,14 @@ jobs:
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
           SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'true' }}
           EXTRA_RSS_FEEDS: ${{ vars.EXTRA_RSS_FEEDS || '' }}
+          ENABLE_MOM_NURSING_PROFILE: ${{ vars.ENABLE_MOM_NURSING_PROFILE || 'false' }}
+          MOM_PROFILE_NAME: ${{ vars.MOM_PROFILE_NAME || 'Yuly Enfermeria Caracas' }}
+          MOM_SUBJECT_PREFIX: ${{ vars.MOM_SUBJECT_PREFIX || 'Ofertas Enfermeria Caracas' }}
+          MOM_LOCATION: ${{ vars.MOM_LOCATION || 'Caracas, Distrito Capital, Venezuela' }}
+          MOM_MIN_COMPATIBILITY_SCORE: ${{ vars.MOM_MIN_COMPATIBILITY_SCORE || '75' }}
+          MOM_LOOKBACK_DAYS: ${{ vars.MOM_LOOKBACK_DAYS || '7' }}
+          MOM_MAX_JOBS_PER_EMAIL: ${{ vars.MOM_MAX_JOBS_PER_EMAIL || '20' }}
+          MOM_AI_MAX_CANDIDATES: ${{ vars.MOM_AI_MAX_CANDIDATES || '20' }}
+          MOM_SERPAPI_RUN_EVERY_HOURS: ${{ vars.MOM_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          MOM_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.MOM_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
+          MOM_SERPAPI_QUERIES: ${{ vars.MOM_SERPAPI_QUERIES || '' }}

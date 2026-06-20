@@ -1,11 +1,13 @@
-import type { MatchedJob } from "../types.js";
+import type { JobProfile, MatchedJob } from "../types.js";
 
 const formatDate = (date?: Date): string => {
   if (!date) return "Fecha no disponible";
   return new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(date);
 };
 
-export const renderTextDigest = (jobs: MatchedJob[]): string => {
+export const renderTextDigest = (jobs: MatchedJob[], profile?: JobProfile): string => {
+  const isTechProfile = !profile || profile.sourceMode === "tech";
+
   if (jobs.length === 0) {
     return "Hoy no se encontraron ofertas nuevas que cumplan los filtros.";
   }
@@ -26,8 +28,12 @@ export const renderTextDigest = (jobs: MatchedJob[]): string => {
           ? [
               `Compatibilidad IA: ${job.aiEvaluation.compatibilityScore}/100 (${job.aiEvaluation.recommendation})`,
               `Resumen IA: ${job.aiEvaluation.summary}`,
-              `Fit Frontend: ${job.aiEvaluation.frontendFit}`,
-              `Peso Backend: ${job.aiEvaluation.backendWeight}`,
+              isTechProfile
+                ? `Fit Frontend: ${job.aiEvaluation.frontendFit}`
+                : `Fit con el perfil: ${job.aiEvaluation.frontendFit}`,
+              isTechProfile
+                ? `Peso Backend: ${job.aiEvaluation.backendWeight}`
+                : `Peso fuera del foco: ${job.aiEvaluation.backendWeight}`,
               `Foco del rol: ${job.aiEvaluation.roleFocus}`,
               `Ingles: ${job.aiEvaluation.englishLevel} (${job.aiEvaluation.englishRequirement})`,
               job.aiEvaluation.salaryRange && job.aiEvaluation.salaryRange !== "No indicado"
@@ -54,7 +60,9 @@ export const renderTextDigest = (jobs: MatchedJob[]): string => {
   ].join("\n\n");
 };
 
-export const renderHtmlDigest = (jobs: MatchedJob[]): string => {
+export const renderHtmlDigest = (jobs: MatchedJob[], profile?: JobProfile): string => {
+  const isTechProfile = !profile || profile.sourceMode === "tech";
+
   if (jobs.length === 0) {
     return "<p>Hoy no se encontraron ofertas nuevas que cumplan los filtros.</p>";
   }
@@ -75,8 +83,8 @@ export const renderHtmlDigest = (jobs: MatchedJob[]): string => {
               ? `
                 <p><strong>Compatibilidad IA:</strong> ${job.aiEvaluation.compatibilityScore}/100 (${job.aiEvaluation.recommendation})</p>
                 <p><strong>Resumen IA:</strong> ${job.aiEvaluation.summary}</p>
-                <p><strong>Fit Frontend:</strong> ${job.aiEvaluation.frontendFit}</p>
-                <p><strong>Peso Backend:</strong> ${job.aiEvaluation.backendWeight}</p>
+                <p><strong>${isTechProfile ? "Fit Frontend" : "Fit con el perfil"}:</strong> ${job.aiEvaluation.frontendFit}</p>
+                <p><strong>${isTechProfile ? "Peso Backend" : "Peso fuera del foco"}:</strong> ${job.aiEvaluation.backendWeight}</p>
                 <p><strong>Foco del rol:</strong> ${job.aiEvaluation.roleFocus}</p>
                 <p><strong>Ingles:</strong> ${job.aiEvaluation.englishLevel} (${job.aiEvaluation.englishRequirement})</p>
                 ${

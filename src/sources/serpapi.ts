@@ -36,6 +36,15 @@ type SerpApiUsageState = {
   month: string;
   usedSearches: number;
   lastRunAt?: string;
+  lastRunAtByProfile?: Record<string, string>;
+};
+
+type SerpApiFetchOptions = {
+  profileId?: string;
+  queries?: string[];
+  location?: string;
+  runEveryHours?: number;
+  maxQueriesPerRun?: number;
 };
 
 const usageStateFile = new URL("../../data/serpapi-usage.json", import.meta.url);
@@ -99,7 +108,8 @@ const readUsageState = async (): Promise<SerpApiUsageState> => {
       return {
         month: parsed.month,
         usedSearches: parsed.usedSearches,
-        lastRunAt: parsed.lastRunAt
+        lastRunAt: parsed.lastRunAt,
+        lastRunAtByProfile: parsed.lastRunAtByProfile
       };
     }
   } catch {
@@ -117,17 +127,18 @@ const writeUsageState = async (state: SerpApiUsageState): Promise<void> => {
   await writeFile(usageStateFile, JSON.stringify(state, null, 2));
 };
 
-const isRunDue = (state: SerpApiUsageState): boolean => {
-  if (!state.lastRunAt) return true;
+const isRunDue = (state: SerpApiUsageState, profileId: string, runEveryHours: number): boolean => {
+  const lastRun = state.lastRunAtByProfile?.[profileId] ?? state.lastRunAt;
+  if (!lastRun) return true;
 
-  const lastRunAt = new Date(state.lastRunAt).getTime();
+  const lastRunAt = new Date(lastRun).getTime();
   if (Number.isNaN(lastRunAt)) return true;
 
   const elapsedHours = (Date.now() - lastRunAt) / (60 * 60 * 1000);
-  return elapsedHours >= config.serpApiRunEveryHours;
+  return elapsedHours >= runEveryHours;
 };
 
-const fetchQuery = async (query: string): Promise<JobPosting[]> => {
+const fetchQuery = async (query: string, location: string): Promise<JobPosting[]> => {
   if (!config.serpApiKey) {
     throw new Error("SERPAPI_API_KEY no esta configurada");
   }
@@ -138,7 +149,7 @@ const fetchQuery = async (query: string): Promise<JobPosting[]> => {
   url.searchParams.set("api_key", config.serpApiKey);
   url.searchParams.set("hl", config.serpApiLanguage);
   url.searchParams.set("gl", config.serpApiCountry);
-  url.searchParams.set("location", config.serpApiLocation);
+  url.searchParams.set("location", location);
 
   const response = await fetch(url);
   const payload = (await response.json()) as SerpApiResponse;
@@ -178,12 +189,20 @@ const fetchQuery = async (query: string): Promise<JobPosting[]> => {
   });
 };
 
-export const fetchSerpApiJobs = async (): Promise<JobPosting[]> => {
-  const queries = config.serpApiQueries.length > 0 ? config.serpApiQueries : defaultQueries;
+export const fetchSerpApiJobs = async (options: SerpApiFetchOptions = {}): Promise<JobPosting[]> => {
+  const profileId = options.profileId ?? "default";
+  const queries = options.queries && options.queries.length > 0
+    ? options.queries
+    : config.serpApiQueries.length > 0
+      ? config.serpApiQueries
+      : defaultQueries;
+  const location = options.location ?? config.serpApiLocation;
+  const runEveryHours = options.runEveryHours ?? config.serpApiRunEveryHours;
+  const maxQueriesPerRun = options.maxQueriesPerRun ?? config.serpApiMaxQueriesPerRun;
   const state = await readUsageState();
 
-  if (!isRunDue(state)) {
-    console.log(`SerpApi omitido: ultima busqueda hace menos de ${config.serpApiRunEveryHours} horas.`);
+  if (!isRunDue(state, profileId, runEveryHours)) {
+    console.log(`SerpApi omitido para ${profileId}: ultima busqueda hace menos de ${runEveryHours} horas.`);
     return [];
   }
 
@@ -193,16 +212,21 @@ export const fetchSerpApiJobs = async (): Promise<JobPosting[]> => {
     return [];
   }
 
-  const queriesToRun = queries.slice(0, Math.min(config.serpApiMaxQueriesPerRun, remainingSearches));
+  const queriesToRun = queries.slice(0, Math.min(maxQueriesPerRun, remainingSearches));
   if (queriesToRun.length === 0) return [];
 
   const attemptedSearches = queriesToRun.length;
-  const results = await Promise.allSettled(queriesToRun.map(fetchQuery));
+  const results = await Promise.allSettled(queriesToRun.map((query) => fetchQuery(query, location)));
+  const now = new Date().toISOString();
 
   await writeUsageState({
     month: currentMonth(),
     usedSearches: state.usedSearches + attemptedSearches,
-    lastRunAt: new Date().toISOString()
+    lastRunAt: now,
+    lastRunAtByProfile: {
+      ...(state.lastRunAtByProfile ?? {}),
+      [profileId]: now
+    }
   });
 
   return results.flatMap((result, index) => {

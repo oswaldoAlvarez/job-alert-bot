@@ -1,4 +1,5 @@
 import "dotenv/config";
+import type { JobProfile } from "./types.js";
 
 const numberFromEnv = (name: string, fallback: number): number => {
   const value = process.env[name];
@@ -14,6 +15,12 @@ const booleanFromEnv = (name: string, fallback: boolean): boolean => {
 
   return ["1", "true", "yes", "si", "sí"].includes(value.toLowerCase());
 };
+
+const listFromEnv = (name: string, separator: string): string[] =>
+  (process.env[name] ?? "")
+    .split(separator)
+    .map((value) => value.trim())
+    .filter(Boolean);
 
 export const config = {
   lookbackDays: numberFromEnv("LOOKBACK_DAYS", 7),
@@ -32,16 +39,10 @@ export const config = {
   serpApiMonthlyLimit: numberFromEnv("SERPAPI_MONTHLY_LIMIT", 220),
   serpApiRunEveryHours: numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12),
   serpApiMaxQueriesPerRun: numberFromEnv("SERPAPI_MAX_QUERIES_PER_RUN", 3),
-  serpApiQueries: (process.env.SERPAPI_QUERIES ?? "")
-    .split("|")
-    .map((query) => query.trim())
-    .filter(Boolean),
+  serpApiQueries: listFromEnv("SERPAPI_QUERIES", "|"),
   sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", true),
   dryRun: booleanFromEnv("DRY_RUN", false),
-  extraRssFeeds: (process.env.EXTRA_RSS_FEEDS ?? "")
-    .split(",")
-    .map((feed) => feed.trim())
-    .filter(Boolean),
+  extraRssFeeds: listFromEnv("EXTRA_RSS_FEEDS", ","),
   defaultRssFeeds: [
     "https://weworkremotely.com/remote-jobs.rss",
     "https://himalayas.app/jobs/rss",
@@ -309,5 +310,196 @@ export const config = {
     "inglés nativo",
     "english proficiency",
     "excellent english"
-  ]
+  ],
+  mom: {
+    enabled: booleanFromEnv("ENABLE_MOM_NURSING_PROFILE", false),
+    emailTo: process.env.MOM_EMAIL_TO,
+    cvText: process.env.MOM_CV_TEXT,
+    profileName: process.env.MOM_PROFILE_NAME ?? "Yuly Enfermeria Caracas",
+    subjectPrefix: process.env.MOM_SUBJECT_PREFIX ?? "Ofertas Enfermeria Caracas",
+    location: process.env.MOM_LOCATION ?? "Caracas, Distrito Capital, Venezuela",
+    minCompatibilityScore: numberFromEnv("MOM_MIN_COMPATIBILITY_SCORE", 75),
+    lookbackDays: numberFromEnv("MOM_LOOKBACK_DAYS", 7),
+    maxJobsPerEmail: numberFromEnv("MOM_MAX_JOBS_PER_EMAIL", 20),
+    aiMaxCandidates: numberFromEnv("MOM_AI_MAX_CANDIDATES", 20),
+    serpApiQueries: listFromEnv("MOM_SERPAPI_QUERIES", "|"),
+    serpApiRunEveryHours: numberFromEnv("MOM_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiMaxQueriesPerRun: numberFromEnv("MOM_SERPAPI_MAX_QUERIES_PER_RUN", 1)
+  }
+};
+
+export const oswaldoProfile: JobProfile = {
+  id: "oswaldo-react",
+  name: "Oswaldo React",
+  subjectPrefix: "Ofertas React/React Native SSR-SR",
+  emailTo: config.smtp.to,
+  cvUrl: config.cvUrl,
+  lookbackDays: config.lookbackDays,
+  maxJobsPerEmail: config.maxJobsPerEmail,
+  aiMaxCandidates: config.aiMaxCandidates,
+  aiMinCompatibilityScore: config.aiMinCompatibilityScore,
+  sourceMode: "tech",
+  serpApiQueries: config.serpApiQueries,
+  serpApiLocation: config.serpApiLocation,
+  serpApiRunEveryHours: config.serpApiRunEveryHours,
+  serpApiMaxQueriesPerRun: config.serpApiMaxQueriesPerRun,
+  requiredTerms: config.requiredTechTerms,
+  optionalTerms: [],
+  exclusionTerms: config.exclusionTerms,
+  blockedTerms: config.blockedRegionTerms,
+  positiveSignals: [...config.seniorityTerms, ...config.remoteTerms, ...config.contractTerms, ...config.regionSignals],
+  promptPreferences: [
+    "Roles objetivo: SSR/SR React Native, React, Frontend, Mobile, Frontend Engineer.",
+    "Perfil principal: frontend/mobile con React, React Native, Next.js y TypeScript.",
+    "No asumir experiencia backend fuerte. Node.js o Python basico/secundario puede aceptarse si el foco de la vacante sigue siendo frontend/mobile.",
+    "Aceptar fullstack solo si el trabajo real es mayormente frontend y usa React, React Native o Next.js.",
+    "Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, .NET, PHP, Ruby, Go, data engineering o arquitectura backend.",
+    "La oferta debe ser full remota. Puede ser mundial, LATAM, Hispanoamerica, Espana o Europa, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
+    "Priorizar LATAM, Hispanoamerica y Espana. Europa solo sirve si la oferta esta en espanol o indica equipo/mercado hispanohablante.",
+    "Descartar ofertas de Brasil o que pidan portugues.",
+    "Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
+    "Verificar si el ingles es requerido. Si requiere C1, C2, advanced, fluent, native o similar, descartar. Si no pide ingles o pide maximo B1/B2/intermedio, puede pasar.",
+    "Extraer rango salarial si aparece en titulo, descripcion, tags o metadata. Si no aparece, usar No indicado."
+  ],
+  sendGuardrails: {
+    acceptedRoles: ["frontend", "mobile", "fullstack_frontend"],
+    acceptedRemoteScopes: ["worldwide", "region_restricted"],
+    acceptedEnglishRequirements: ["none", "not_specified", "b1", "b2"],
+    acceptedSpanishFits: ["spanish_offer", "spanish_speaking_team"],
+    allowMediumFrontendForFullstack: true,
+    rejectHighBackend: true,
+    requireSpanishSignal: true
+  }
+};
+
+const momDefaultQueries = [
+  "enfermera Caracas Venezuela",
+  "licenciada en enfermeria Caracas",
+  "enfermera profesional Caracas",
+  "enfermera ocupacional Caracas",
+  "enfermera cuidados intensivos Caracas",
+  "enfermera oncologia Caracas",
+  "enfermera clinica Caracas",
+  "enfermera hospital Caracas",
+  "enfermera a domicilio Caracas",
+  "enfermera cuidado de pacientes Caracas",
+  "enfermera pacientes postoperatorios Caracas",
+  "enfermera cuidados post operatorios Caracas",
+  "enfermera pacientes medicos Caracas",
+  "enfermera cuidados a domicilio pacientes Caracas",
+  "enfermeria domiciliaria Caracas",
+  "enfermera adulto mayor Caracas",
+  "enfermera cuidado de heridas Caracas",
+  "enfermera alimentacion por sonda Caracas",
+  "enfermera administracion de tratamiento Caracas",
+  "enfermero Caracas Distrito Capital"
+];
+
+export const momNursingProfile: JobProfile = {
+  id: "mom-nursing-caracas",
+  name: config.mom.profileName,
+  subjectPrefix: config.mom.subjectPrefix,
+  emailTo: config.mom.emailTo,
+  cvText: config.mom.cvText,
+  lookbackDays: config.mom.lookbackDays,
+  maxJobsPerEmail: config.mom.maxJobsPerEmail,
+  aiMaxCandidates: config.mom.aiMaxCandidates,
+  aiMinCompatibilityScore: config.mom.minCompatibilityScore,
+  sourceMode: "serpapi_only",
+  serpApiQueries: config.mom.serpApiQueries.length > 0 ? config.mom.serpApiQueries : momDefaultQueries,
+  serpApiLocation: config.mom.location,
+  serpApiRunEveryHours: config.mom.serpApiRunEveryHours,
+  serpApiMaxQueriesPerRun: config.mom.serpApiMaxQueriesPerRun,
+  requiredTerms: ["enfermera", "enfermero", "enfermeria", "enfermería", "nursing", "nurse"],
+  optionalTerms: [
+    "licenciada en enfermeria",
+    "licenciada en enfermería",
+    "auxiliar de enfermeria",
+    "auxiliar de enfermería",
+    "cuidados intensivos",
+    "uci",
+    "oncologia",
+    "oncología",
+    "cardiologia",
+    "cardiología",
+    "clinica",
+    "clínica",
+    "hospital",
+    "domicilio",
+    "cuidado de pacientes",
+    "cuidados de pacientes",
+    "pacientes medicos",
+    "pacientes médicos",
+    "enfermedades",
+    "postoperatorio",
+    "post operatorio",
+    "post-operatorio",
+    "recuperacion",
+    "recuperación",
+    "hospitalizacion",
+    "hospitalización",
+    "enfermeria domiciliaria",
+    "enfermería domiciliaria",
+    "adulto mayor",
+    "baño en cama",
+    "bano en cama",
+    "alimentacion por sonda",
+    "alimentación por sonda",
+    "cuidado de heridas",
+    "cura de heridas",
+    "administracion de tratamiento",
+    "administración de tratamiento",
+    "pacientes covid",
+    "covid",
+    "ocupacional",
+    "instrumentista"
+  ],
+  exclusionTerms: ["medico", "médico", "odontologo", "odontólogo", "farmaceutico", "farmacéutico", "ventas", "comercial", "recepcionista", "administrativo"],
+  blockedTerms: ["brazil", "brasil", "portuguese", "portugues", "portugués"],
+  positiveSignals: [
+    "caracas",
+    "distrito capital",
+    "venezuela",
+    "clinica",
+    "clínica",
+    "hospital",
+    "centro medico",
+    "centro médico",
+    "salud",
+    "paciente",
+    "pacientes",
+    "postoperatorio",
+    "post operatorio",
+    "post-operatorio",
+    "hospitalizacion",
+    "hospitalización",
+    "domicilio",
+    "cuidados",
+    "adulto mayor",
+    "heridas",
+    "sonda",
+    "tratamiento",
+    "covid"
+  ],
+  promptPreferences: [
+    "Perfil objetivo: Yuly Maribel Delgado Rodriguez, licenciada en enfermeria ubicada en Caracas, Venezuela.",
+    "Experiencia en Clinica Santa Sofia, Clinica Metropolitana, Centro Medico Clinico Loira y Hospital Militar Carlos Arvelo.",
+    "Experiencia en enfermeria clinica, cardiologia, cuidados intensivos y oncologia.",
+    "Buscar ofertas presenciales o por turnos en Caracas/Distrito Capital para licenciada en enfermeria, enfermera profesional, enfermera clinica, enfermera ocupacional, hospital, clinica, centro medico o enfermeria a domicilio.",
+    "Incluir especialmente ofertas de cuidado de pacientes medicos, pacientes con enfermedades, pacientes postoperatorios/post-operatorios, recuperacion, hospitalizacion, cuidados a domicilio, cuidados intensivos, oncologia y seguimiento de tratamientos.",
+    "Priorizar especialmente enfermeria domiciliaria: administracion de tratamiento, bano en cama, alimentacion por sonda, cuidado/curacion de heridas, atencion de adulto mayor, cuidados propios de enfermeria, pacientes COVID o pacientes respiratorios.",
+    "Priorizar Caracas, Distrito Capital o zonas razonables de Caracas. Descartar ofertas fuera de Venezuela o que exijan mudarse lejos.",
+    "Descartar ofertas que sean para medico, odontologo, farmacia, ventas, administracion, recepcion, laboratorio sin funcion de enfermeria o cargos no asistenciales.",
+    "Extraer salario/rango salarial si aparece. Si no aparece, usar No indicado.",
+    "Recomendar aplicar si la compatibilidad real es igual o mayor al umbral y la oferta parece adecuada para una licenciada en enfermeria con experiencia senior."
+  ],
+  sendGuardrails: {
+    acceptedRoles: ["other"],
+    acceptedRemoteScopes: ["country_restricted", "region_restricted", "hybrid", "onsite", "unknown"],
+    acceptedEnglishRequirements: ["none", "not_specified", "unknown", "b1", "b2"],
+    acceptedSpanishFits: ["spanish_offer", "spanish_speaking_team", "not_specified"],
+    allowMediumFrontendForFullstack: true,
+    rejectHighBackend: false,
+    requireSpanishSignal: false
+  }
 };

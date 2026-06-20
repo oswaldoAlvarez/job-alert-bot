@@ -22,6 +22,39 @@ export type JobSource = {
   fetchJobs: () => Promise<JobPosting[]>;
 };
 
+export type JobProfile = {
+  id: string;
+  name: string;
+  subjectPrefix: string;
+  emailTo?: string;
+  cvText?: string;
+  cvUrl?: string;
+  lookbackDays: number;
+  maxJobsPerEmail: number;
+  aiMaxCandidates: number;
+  aiMinCompatibilityScore: number;
+  sourceMode: "tech" | "serpapi_only";
+  serpApiQueries: string[];
+  serpApiLocation?: string;
+  serpApiRunEveryHours: number;
+  serpApiMaxQueriesPerRun: number;
+  requiredTerms: string[];
+  optionalTerms: string[];
+  exclusionTerms: string[];
+  blockedTerms: string[];
+  positiveSignals: string[];
+  promptPreferences: string[];
+  sendGuardrails: {
+    acceptedRoles: RoleFocus[];
+    acceptedRemoteScopes: RemoteScope[];
+    acceptedEnglishRequirements: EnglishRequirement[];
+    acceptedSpanishFits: SpanishFit[];
+    allowMediumFrontendForFullstack: boolean;
+    rejectHighBackend: boolean;
+    requireSpanishSignal: boolean;
+  };
+};
+
 export type AiRecommendation = "aplicar" | "revisar" | "descartar";
 export type EnglishRequirement =
   | "none"

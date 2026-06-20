@@ -5,6 +5,7 @@ type EmailPayload = {
   subject: string;
   text: string;
   html: string;
+  to?: string;
 };
 
 const requiredSmtpFields = [
@@ -41,7 +42,7 @@ export const sendEmail = async (payload: EmailPayload): Promise<void> => {
 
   await transporter.sendMail({
     from: config.smtp.from,
-    to: config.smtp.to,
+    to: payload.to ?? config.smtp.to,
     subject: payload.subject,
     text: payload.text,
     html: payload.html

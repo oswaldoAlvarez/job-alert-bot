@@ -327,6 +327,8 @@ SMTP_PASSWORD
 EMAIL_FROM
 EMAIL_TO
 OPENAI_API_KEY
+MOM_EMAIL_TO
+MOM_CV_TEXT
 ```
 
 Valores tipicos para Gmail:
@@ -340,6 +342,8 @@ SMTP_PASSWORD = app-password-de-gmail
 EMAIL_FROM = tu-email@gmail.com
 EMAIL_TO = destino@gmail.com
 OPENAI_API_KEY = sk-...
+MOM_EMAIL_TO = correo-de-tu-mama@gmail.com
+MOM_CV_TEXT = Yuly Maribel Delgado Rodriguez. Licenciada en Enfermeria...
 ```
 
 Secret opcional para buscar tambien en Google Jobs, LinkedIn, Indeed y job boards de empresas via SerpApi:
@@ -368,9 +372,26 @@ SERPAPI_MAX_QUERIES_PER_RUN
 SERPAPI_QUERIES
 SEND_EMPTY_DIGEST
 EXTRA_RSS_FEEDS
+ENABLE_MOM_NURSING_PROFILE
+MOM_PROFILE_NAME
+MOM_SUBJECT_PREFIX
+MOM_LOCATION
+MOM_MIN_COMPATIBILITY_SCORE
+MOM_LOOKBACK_DAYS
+MOM_MAX_JOBS_PER_EMAIL
+MOM_AI_MAX_CANDIDATES
+MOM_SERPAPI_RUN_EVERY_HOURS
+MOM_SERPAPI_MAX_QUERIES_PER_RUN
+MOM_SERPAPI_QUERIES
 ```
 
 Si no configuras estas variables opcionales, el workflow usa valores por defecto.
+
+### Perfil Opcional: Enfermeria Caracas
+
+Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil busca ofertas presenciales/onsite de licenciada en enfermeria en Caracas, con foco en enfermeria domiciliaria, cuidado de pacientes medicos, postoperatorios, adulto mayor, alimentacion por sonda, cuidado de heridas, administracion de tratamiento, pacientes COVID/respiratorios, clinicas, hospitales y centros medicos. Este perfil no exige remoto.
+
+Este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo si quieres que busque esas ofertas.
 
 ## Como Configurar Secrets En GitHub
 
@@ -432,6 +453,9 @@ El bot guarda ofertas enviadas en:
 
 ```txt
 data/seen-jobs.json
+data/seen-jobs-oswaldo-react.json
+data/seen-jobs-mom-nursing-caracas.json
+data/serpapi-usage.json
 ```
 
 Ese archivo evita reenviar las mismas ofertas. En GitHub Actions se conserva usando cache.

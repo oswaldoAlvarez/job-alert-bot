@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { preselectJobCandidate } from "../src/agent/preselectJobs.js";
+import { momNursingProfile } from "../src/config.js";
 import { shouldSendAiMatchedJob } from "../src/services/aiMatcher.js";
 import { renderTextDigest } from "../src/services/digest.js";
 import type { JobPosting, MatchedJob } from "../src/types.js";
@@ -20,7 +21,7 @@ describe("preselectJobCandidate", () => {
     const result = preselectJobCandidate(baseJob);
 
     expect(result).toBeDefined();
-    expect(result?.reasons.join(" ")).toContain("Senales tecnicas");
+    expect(result?.reasons.join(" ")).toContain("Senales objetivo");
   });
 
   it("rechaza ofertas junior antes de gastar IA", () => {
@@ -61,6 +62,35 @@ describe("preselectJobCandidate", () => {
       location: "Remote Brazil",
       description: "React remoto para Brasil. Portuguese speaking required."
     });
+
+    expect(result).toBeUndefined();
+  });
+
+  it("preselecciona enfermeria domiciliaria y cuidado de pacientes para el perfil de Yuly", () => {
+    const result = preselectJobCandidate(
+      {
+        ...baseJob,
+        title: "Enfermera domiciliaria para adulto mayor",
+        location: "Caracas, Distrito Capital",
+        description:
+          "Se solicita licenciada en enfermeria para cuidado de heridas, administracion de tratamiento, bano en cama y alimentacion por sonda."
+      },
+      momNursingProfile
+    );
+
+    expect(result).toBeDefined();
+  });
+
+  it("rechaza ventas medicas para el perfil de Yuly", () => {
+    const result = preselectJobCandidate(
+      {
+        ...baseJob,
+        title: "Representante de ventas medicas",
+        location: "Caracas",
+        description: "Ventas de insumos medicos y atencion comercial a clientes."
+      },
+      momNursingProfile
+    );
 
     expect(result).toBeUndefined();
   });
@@ -229,6 +259,33 @@ describe("shouldSendAiMatchedJob", () => {
         roleFocus: "fullstack_frontend"
       }
     } as MatchedJob);
+
+    expect(shouldSend).toBe(true);
+  });
+
+  it("acepta ofertas presenciales de enfermeria para el perfil de Yuly", () => {
+    const shouldSend = shouldSendAiMatchedJob(
+      {
+        ...baseJob,
+        score: 80,
+        reasons: ["Senales objetivo: enfermera"],
+        aiEvaluation: {
+          ...goodEvaluation,
+          compatibilityScore: 78,
+          recommendation: "aplicar",
+          summary: "Oferta presencial de enfermeria domiciliaria en Caracas.",
+          matchReasons: ["Caracas", "Cuidado de pacientes"],
+          frontendFit: "medio",
+          backendWeight: "bajo",
+          englishRequirement: "not_specified",
+          remoteFit: "Presencial en Caracas",
+          remoteScope: "onsite",
+          roleFocus: "other",
+          spanishFit: "spanish_offer"
+        }
+      } as MatchedJob,
+      momNursingProfile
+    );
 
     expect(shouldSend).toBe(true);
   });
