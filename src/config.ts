@@ -29,6 +29,9 @@ export const config = {
   serpApiLocation: process.env.SERPAPI_LOCATION ?? "Miami, Florida, United States",
   serpApiCountry: process.env.SERPAPI_GL ?? "us",
   serpApiLanguage: process.env.SERPAPI_HL ?? "es",
+  serpApiMonthlyLimit: numberFromEnv("SERPAPI_MONTHLY_LIMIT", 220),
+  serpApiRunEveryHours: numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12),
+  serpApiMaxQueriesPerRun: numberFromEnv("SERPAPI_MAX_QUERIES_PER_RUN", 3),
   serpApiQueries: (process.env.SERPAPI_QUERIES ?? "")
     .split("|")
     .map((query) => query.trim())

@@ -225,6 +225,9 @@ ENABLE_SERPAPI=false
 SERPAPI_LOCATION=Miami, Florida, United States
 SERPAPI_GL=us
 SERPAPI_HL=es
+SERPAPI_MONTHLY_LIMIT=220
+SERPAPI_RUN_EVERY_HOURS=12
+SERPAPI_MAX_QUERIES_PER_RUN=3
 SERPAPI_QUERIES=
 LOOKBACK_DAYS=3
 MAX_JOBS_PER_EMAIL=20
@@ -237,6 +240,16 @@ EXTRA_RSS_FEEDS=
 `OPENAI_API_KEY` es necesaria solo si activas `ENABLE_AI_MATCHING=true`.
 
 `SERPAPI_API_KEY` es necesaria solo si activas `ENABLE_SERPAPI=true`.
+
+Para cuidar el plan gratis de SerpApi, el agente tiene un limite interno:
+
+```txt
+SERPAPI_MONTHLY_LIMIT=220
+SERPAPI_RUN_EVERY_HOURS=12
+SERPAPI_MAX_QUERIES_PER_RUN=3
+```
+
+Con esos valores, aunque GitHub Actions corra cada 1 hora, SerpApi solo se consulta cada 12 horas y ejecuta hasta 3 busquedas por vez. Eso consume aproximadamente 180-186 busquedas al mes y deja margen por debajo de 220.
 
 `SERPAPI_QUERIES` permite definir busquedas separadas por `|`. Ejemplo:
 
@@ -347,6 +360,9 @@ ENABLE_SERPAPI
 SERPAPI_LOCATION
 SERPAPI_GL
 SERPAPI_HL
+SERPAPI_MONTHLY_LIMIT
+SERPAPI_RUN_EVERY_HOURS
+SERPAPI_MAX_QUERIES_PER_RUN
 SERPAPI_QUERIES
 SEND_EMPTY_DIGEST
 EXTRA_RSS_FEEDS

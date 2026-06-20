@@ -22,12 +22,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Restore sent jobs state
+      - name: Restore agent state
         uses: actions/cache@v4
         with:
-          path: data/seen-jobs.json
-          key: seen-jobs-${{ github.run_id }}
+          path: data
+          key: agent-state-${{ github.run_id }}
           restore-keys: |
+            agent-state-
             seen-jobs-
 
       - name: Build
@@ -54,6 +55,9 @@ jobs:
           SERPAPI_LOCATION: ${{ vars.SERPAPI_LOCATION || 'Miami, Florida, United States' }}
           SERPAPI_GL: ${{ vars.SERPAPI_GL || 'us' }}
           SERPAPI_HL: ${{ vars.SERPAPI_HL || 'es' }}
+          SERPAPI_MONTHLY_LIMIT: ${{ vars.SERPAPI_MONTHLY_LIMIT || '220' }}
+          SERPAPI_RUN_EVERY_HOURS: ${{ vars.SERPAPI_RUN_EVERY_HOURS || '12' }}
+          SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SERPAPI_MAX_QUERIES_PER_RUN || '3' }}
           SERPAPI_QUERIES: ${{ vars.SERPAPI_QUERIES || '' }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '3' }}
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}

@@ -1,6 +1,8 @@
 import { config } from "../config.js";
 import { parseDate, stripHtml } from "../filters/normalize.js";
 import type { JobPosting } from "../types.js";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname } from "node:path";
 
 type SerpApiJob = {
   job_id?: string;
@@ -29,6 +31,14 @@ type SerpApiResponse = {
   jobs_results?: SerpApiJob[];
   error?: string;
 };
+
+type SerpApiUsageState = {
+  month: string;
+  usedSearches: number;
+  lastRunAt?: string;
+};
+
+const usageStateFile = new URL("../../data/serpapi-usage.json", import.meta.url);
 
 const defaultQueries = [
   "Senior React Native developer remote LATAM contractor",
@@ -79,6 +89,43 @@ const serializeHighlights = (job: SerpApiJob): string =>
   (job.job_highlights ?? [])
     .map((highlight) => [highlight.title, ...(highlight.items ?? [])].filter(Boolean).join(": "))
     .join("\n");
+
+const currentMonth = (): string => new Date().toISOString().slice(0, 7);
+
+const readUsageState = async (): Promise<SerpApiUsageState> => {
+  try {
+    const parsed = JSON.parse(await readFile(usageStateFile, "utf8")) as Partial<SerpApiUsageState>;
+    if (parsed.month === currentMonth() && typeof parsed.usedSearches === "number") {
+      return {
+        month: parsed.month,
+        usedSearches: parsed.usedSearches,
+        lastRunAt: parsed.lastRunAt
+      };
+    }
+  } catch {
+    // Missing state is expected on first run.
+  }
+
+  return {
+    month: currentMonth(),
+    usedSearches: 0
+  };
+};
+
+const writeUsageState = async (state: SerpApiUsageState): Promise<void> => {
+  await mkdir(dirname(usageStateFile.pathname), { recursive: true });
+  await writeFile(usageStateFile, JSON.stringify(state, null, 2));
+};
+
+const isRunDue = (state: SerpApiUsageState): boolean => {
+  if (!state.lastRunAt) return true;
+
+  const lastRunAt = new Date(state.lastRunAt).getTime();
+  if (Number.isNaN(lastRunAt)) return true;
+
+  const elapsedHours = (Date.now() - lastRunAt) / (60 * 60 * 1000);
+  return elapsedHours >= config.serpApiRunEveryHours;
+};
 
 const fetchQuery = async (query: string): Promise<JobPosting[]> => {
   if (!config.serpApiKey) {
@@ -133,12 +180,35 @@ const fetchQuery = async (query: string): Promise<JobPosting[]> => {
 
 export const fetchSerpApiJobs = async (): Promise<JobPosting[]> => {
   const queries = config.serpApiQueries.length > 0 ? config.serpApiQueries : defaultQueries;
-  const results = await Promise.allSettled(queries.map(fetchQuery));
+  const state = await readUsageState();
+
+  if (!isRunDue(state)) {
+    console.log(`SerpApi omitido: ultima busqueda hace menos de ${config.serpApiRunEveryHours} horas.`);
+    return [];
+  }
+
+  const remainingSearches = Math.max(0, config.serpApiMonthlyLimit - state.usedSearches);
+  if (remainingSearches === 0) {
+    console.log(`SerpApi omitido: limite mensual interno alcanzado (${config.serpApiMonthlyLimit}).`);
+    return [];
+  }
+
+  const queriesToRun = queries.slice(0, Math.min(config.serpApiMaxQueriesPerRun, remainingSearches));
+  if (queriesToRun.length === 0) return [];
+
+  const attemptedSearches = queriesToRun.length;
+  const results = await Promise.allSettled(queriesToRun.map(fetchQuery));
+
+  await writeUsageState({
+    month: currentMonth(),
+    usedSearches: state.usedSearches + attemptedSearches,
+    lastRunAt: new Date().toISOString()
+  });
 
   return results.flatMap((result, index) => {
     if (result.status === "fulfilled") return result.value;
 
-    console.warn(`SerpApi fallo para query "${queries[index]}": ${result.reason}`);
+    console.warn(`SerpApi fallo para query "${queriesToRun[index]}": ${result.reason}`);
     return [];
   });
 };
