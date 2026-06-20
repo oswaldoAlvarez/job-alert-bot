@@ -290,6 +290,34 @@ describe("shouldSendAiMatchedJob", () => {
 
     expect(shouldSend).toBe(true);
   });
+
+  it("acepta ofertas revisar de enfermeria para el perfil de Yuly", () => {
+    const shouldSend = shouldSendAiMatchedJob(
+      {
+        ...baseJob,
+        score: 20,
+        reasons: ["Senales objetivo: enfermera"],
+        aiEvaluation: {
+          ...goodEvaluation,
+          compatibilityScore: 20,
+          recommendation: "revisar",
+          summary: "Oferta relacionada con enfermeria en Caracas.",
+          matchReasons: ["Enfermeria", "Caracas"],
+          concerns: ["Confirmar horario"],
+          frontendFit: "bajo",
+          backendWeight: "alto",
+          englishRequirement: "unknown",
+          remoteFit: "Presencial en Caracas",
+          remoteScope: "onsite",
+          roleFocus: "other",
+          spanishFit: "not_specified"
+        }
+      } as MatchedJob,
+      momNursingProfile
+    );
+
+    expect(shouldSend).toBe(true);
+  });
 });
 
 describe("extractVisiblePageDate", () => {
