@@ -1,8 +1,8 @@
-name: Job alert every 2 hours
+name: Job alert hourly
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:

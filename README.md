@@ -2,7 +2,7 @@
 
 Bot en Node.js + TypeScript que busca ofertas de empleo para perfiles SSR/SR de React, React Native o Frontend, filtra las que mejor encajan con el criterio definido y envía un resumen por correo.
 
-El objetivo es recibir actualizaciones automáticas cada 2 horas con ofertas relevantes para LATAM, Europa, posiciones remotas, freelance o contractor.
+El objetivo es recibir actualizaciones automáticas cada 1 hora con ofertas relevantes para LATAM, Europa, posiciones remotas, freelance o contractor.
 
 ## Que Hace
 
@@ -20,7 +20,7 @@ Cada ejecución del bot hace este flujo:
 El bot puede ejecutarse de dos formas:
 
 - Manualmente desde tu Mac.
-- Automaticamente cada 2 horas con GitHub Actions.
+- Automaticamente cada 1 hora con GitHub Actions.
 
 ## Criterios De Busqueda
 
@@ -134,7 +134,7 @@ Guarda ofertas ya enviadas en `data/seen-jobs.json` para no repetirlas.
 
 `.github/workflows/daily-jobs.yml`
 
-Workflow de GitHub Actions que ejecuta el bot cada 2 horas.
+Workflow de GitHub Actions que ejecuta el bot cada 1 hora.
 
 ## Configuracion Local
 
@@ -217,13 +217,13 @@ npm start
 
 ## Automatizacion Con GitHub Actions
 
-El workflow corre cada 2 horas usando este cron:
+El workflow corre cada 1 hora usando este cron:
 
 ```txt
-0 */2 * * *
+0 * * * *
 ```
 
-GitHub Actions usa UTC. El bot se ejecuta cada 2 horas durante todo el dia.
+GitHub Actions usa UTC. El bot se ejecuta cada 1 hora durante todo el dia.
 
 ## Secrets Necesarios En GitHub
 
@@ -287,10 +287,10 @@ Crea cada secret de la lista anterior, uno por uno.
 Despues de subir el proyecto:
 
 ```txt
-Actions -> Job alert every 2 hours -> Run workflow
+Actions -> Job alert hourly -> Run workflow
 ```
 
-Si el workflow corre bien, despues queda automatico cada 2 horas.
+Si el workflow corre bien, despues queda automatico cada 1 hora.
 
 ## Tests Y Validacion
 
