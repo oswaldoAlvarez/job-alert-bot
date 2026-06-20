@@ -220,10 +220,10 @@ npm start
 El workflow corre cada 1 hora usando este cron:
 
 ```txt
-0 * * * *
+17 * * * *
 ```
 
-GitHub Actions usa UTC. El bot se ejecuta cada 1 hora durante todo el dia.
+GitHub Actions usa UTC. El bot se ejecuta cada 1 hora durante todo el dia, en el minuto 17 de cada hora.
 
 ## Secrets Necesarios En GitHub
 
