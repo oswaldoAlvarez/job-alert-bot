@@ -109,10 +109,16 @@ export const filterFreshJobsByLandingPage = async (
         continue;
       }
 
-      filtered.push(pageDate ? { ...job, publishedAt: pageDate } : job);
+      if (!pageDate) {
+        staleCount += 1;
+        console.log(`Oferta descartada porque no se pudo verificar fecha real: ${job.title}`);
+        continue;
+      }
+
+      filtered.push({ ...job, publishedAt: pageDate });
     } catch (error) {
       console.warn(`No se pudo verificar fecha real de "${job.title}": ${error}`);
-      filtered.push(job);
+      staleCount += 1;
     }
   }
 

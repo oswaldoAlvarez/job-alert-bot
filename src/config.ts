@@ -23,7 +23,7 @@ const listFromEnv = (name: string, separator: string): string[] =>
     .filter(Boolean);
 
 export const config = {
-  lookbackDays: numberFromEnv("LOOKBACK_DAYS", 7),
+  lookbackDays: numberFromEnv("LOOKBACK_DAYS", 60),
   maxJobsPerEmail: numberFromEnv("MAX_JOBS_PER_EMAIL", 20),
   aiMaxCandidates: numberFromEnv("AI_MAX_CANDIDATES", 30),
   aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 80),

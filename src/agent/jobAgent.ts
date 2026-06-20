@@ -30,6 +30,7 @@ const resolveCvText = async (profile: JobProfile): Promise<string> => {
 const isMomNursingProfile = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
 const shouldReadLandingPage = (profile: JobProfile): boolean =>
   profile.id === "mom-nursing-caracas" || profile.id === "sister-bakery-caracas";
+const shouldVerifyFreshness = (profile: JobProfile): boolean => profile.sourceMode === "tech";
 
 const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
@@ -38,9 +39,9 @@ const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
     ? jobsWithDetails
     : jobsWithDetails.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
   const candidateJobs = preselectJobCandidates(dedupeJobs(recentJobs), profile);
-  const { jobs: freshCandidateJobs, staleCount } = isMomNursingProfile(profile)
-    ? { jobs: candidateJobs, staleCount: 0 }
-    : await filterFreshJobsByLandingPage(candidateJobs, profile);
+  const { jobs: freshCandidateJobs, staleCount } = shouldVerifyFreshness(profile)
+    ? await filterFreshJobsByLandingPage(candidateJobs, profile)
+    : { jobs: candidateJobs, staleCount: 0 };
   const { jobs: criticalFilteredJobs, rejectedCount: criticalRejectedCount } = isMomNursingProfile(profile)
     ? filterNursingCriticalExclusions(freshCandidateJobs)
     : { jobs: freshCandidateJobs, rejectedCount: 0 };
