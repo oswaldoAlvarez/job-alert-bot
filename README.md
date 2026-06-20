@@ -1,322 +1,97 @@
 # Job Alert Bot
 
-Agente en Node.js + TypeScript que busca ofertas de empleo para perfiles SSR/SR de React, React Native o Frontend, compara cada oferta contra el CV virtual con IA y envia un resumen por correo.
+Bot en Node.js + TypeScript para buscar ofertas laborales, compararlas con perfiles definidos en el proyecto usando IA y enviar resúmenes por correo.
 
-El objetivo es recibir actualizaciones automáticas cada 12 horas con hasta 20 ofertas relevantes por perfil.
+El objetivo es recibir oportunidades relevantes para varios perfiles sin revisar manualmente portales de empleo todos los días.
 
-## Que Hace
+## Stack
 
-Cada ejecución del bot hace este flujo:
+- Node.js
+- TypeScript
+- OpenAI API para evaluar compatibilidad con cada perfil
+- SerpApi para Google Jobs / LinkedIn / Indeed / job boards indexados por Google
+- RSS feeds configurables
+- SMTP Gmail para envío de correos
+- GitHub Actions para ejecución automática
 
-```txt
-1. El orquestador consulta fuentes de empleo publicas.
-2. Normaliza todas las ofertas a un formato comun.
-3. Hace una preseleccion amplia por senales tecnicas para no gastar IA en basura.
-4. Descarta ofertas ya enviadas anteriormente.
-5. El agente de IA compara cada oferta contra el CV virtual, experiencia, tecnologias y preferencias.
-6. La IA decide aplicar, revisar o descartar.
-7. Genera un resumen en texto y HTML con explicacion de compatibilidad.
-8. Envia el resumen por email usando SMTP.
-```
+## Perfiles
 
-El bot puede ejecutarse de dos formas:
+El proyecto contiene tres perfiles:
 
-- Manualmente desde tu Mac.
-- Automaticamente cada 12 horas con GitHub Actions.
+- `Oswaldo React`: React, React Native, Next.js, frontend/mobile, remoto, LATAM/Europa, español o mercado hispanohablante.
+- `Yuly Enfermeria Caracas`: enfermería, cuidado de pacientes, enfermería domiciliaria y roles asistenciales en Caracas.
+- `Yuliana Pasteleria Panaderia Caracas`: panadería, pastelería, repostería, bombonería, decoración de tortas y roles afines en Caracas.
 
-## Criterios Del Agente
+Cada perfil tiene sus propios filtros, búsqueda, email destino y criterios de IA.
 
-El agente busca ofertas que tengan senales de:
+## Cómo Funciona
 
-- Tecnologia: React, React Native, React.js, ReactJS, Frontend o Front-end.
-- Seniority objetivo: SSR, Semi Senior, Senior o SR.
-- Perfil principal: mas frontend/mobile que backend, con React, React Native, Next.js y TypeScript.
-- Fullstack solo si el foco real sigue siendo frontend con React, React Native o Next.js.
-- Modalidad: full remote, sin exigir vivir en un pais especifico. Puede ser mundial o por region amplia.
-- Idioma: oferta en espanol o con senal clara de equipo/mercado hispanohablante.
+1. Busca ofertas en fuentes públicas, RSS y SerpApi.
+2. Filtra por palabras clave del perfil.
+3. Evita reenviar ofertas ya enviadas.
+4. Usa IA para resumir y evaluar compatibilidad.
+5. Envía un correo con las ofertas seleccionadas.
 
-La IA verifica el ingles requerido:
+Los correos incluyen resumen, compatibilidad, por qué matchea, dudas/riesgos, salario si aparece y link de aplicación.
 
-- Si no pide ingles, puede pasar.
-- Si pide ingles B1, B2 o intermedio, puede pasar.
-- Si pide ingles C1, C2, advanced, fluent o native, se descarta.
-
-El preselector descarta antes de la IA ofertas Junior, Trainee, Intern, Internship, Practicas o Becario.
-
-## Evaluacion Con IA
-
-El bot puede usar IA para leer cada oferta y compararla contra el CV virtual:
-
-```txt
-https://oswaldo-virtual-cv.vercel.app/es
-```
-
-Esta etapa sirve para evitar falsos positivos como ofertas Fullstack que mencionan React pero en realidad son mas backend que frontend.
-
-Cuando `ENABLE_AI_MATCHING=true`, cada oferta preseleccionada se evalua con estos criterios:
-
-- Compatibilidad general de 0 a 100.
-- Recomendacion: aplicar, revisar o descartar.
-- Resumen de la oferta en espanol.
-- Motivos concretos por los que matchea.
-- Dudas o riesgos.
-- Fit Frontend: alto, medio o bajo.
-- Peso Backend: alto, medio o bajo.
-- Nivel de ingles detectado.
-- Rango salarial, si aparece en la oferta.
-- Compatibilidad con remoto, LATAM o Europa.
-
-La IA descarta del email las ofertas que no sean recomendacion `aplicar`, tengan score menor a `AI_MIN_COMPATIBILITY_SCORE`, tengan backend alto, pidan ingles mayor a B2, exijan vivir en un pais especifico, no sean full remotas, sean de Brasil/portugues o no tengan senal de espanol/mercado hispanohablante.
-
-Esto no es RAG con vector database. El CV virtual es pequeno y publico, asi que el agente lo lee completo en cada ejecucion y lo mete como contexto directo del modelo. Si luego agregas varios CVs, portfolio largo, cartas, historial de postulaciones o preferencias extensas, ahi si tendria sentido convertirlo en RAG.
-
-## Fuentes Incluidas
-
-Fuentes que el bot consulta automaticamente:
-
-- Remotive API.
-- RemoteOK API.
-- Jobicy API.
-- Get on Board API.
-- Arbeitnow API.
-- Google Jobs via SerpApi, opcional, para traer resultados de LinkedIn, Indeed y job boards de empresas.
-- We Work Remotely RSS.
-- Himalayas Atom feed.
-- Real Work From Anywhere RSS.
-
-Tambien permite agregar fuentes RSS extra con:
-
-```env
-EXTRA_RSS_FEEDS=
-```
-
-Esto sirve para agregar RSS de busquedas concretas de portales como InfoJobs, Tecnoempleo u otros que permitan alertas/RSS.
-
-## Sobre LinkedIn, Indeed, Upwork Y Otros Portales
-
-LinkedIn Jobs, Indeed, Upwork, Bumeran y portales similares no siempre ofrecen una API publica simple para buscar ofertas como candidato. Muchos bloquean automatizaciones con captcha, rate limits o requieren acceso de partner.
-
-Por eso el agente usa fuentes publicas, APIs/RSS disponibles y, opcionalmente, SerpApi Google Jobs. Google Jobs suele agregar ofertas desde LinkedIn, Indeed, portales de empleo y job boards propios de empresas.
-
-- Usar `SERPAPI_API_KEY` para activar busquedas en Google Jobs.
-- Usar la API oficial de LinkedIn solo si tienes acceso aprobado.
-- Usar un proveedor externo como Apify, TheirStack o Coresignal si necesitas LinkedIn directo.
-- Crear alertas/RSS cuando el portal lo permita y agregarlas en `EXTRA_RSS_FEEDS`.
-
-## Estructura Del Proyecto
-
-```txt
-job-alert-bot/
-  .github/workflows/daily-jobs.yml
-  data/.gitkeep
-  src/
-    index.ts
-    config.ts
-    types.ts
-    agent/
-      jobAgent.ts
-      preselectJobs.ts
-      sourceRunner.ts
-    sources/
-      arbeitnow.ts
-      getonboard.ts
-      jobicy.ts
-      remoteok.ts
-      remotive.ts
-      rss.ts
-      serpapi.ts
-    filters/
-      normalize.ts
-    services/
-      aiMatcher.ts
-      cv.ts
-      digest.ts
-      email.ts
-      state.ts
-  tests/
-    jobAgent.test.ts
-  .env.example
-  .gitignore
-  package.json
-  tsconfig.json
-```
-
-## Archivos Principales
-
-`src/index.ts`
-
-Arranca el agente.
-
-`src/agent/jobAgent.ts`
-
-Orquestador principal: consulta fuentes, deduplica, preselecciona candidatos, llama a la IA, genera el digest y envia el email.
-
-`src/agent/sourceRunner.ts`
-
-Ejecuta todas las fuentes de empleo y captura estadisticas o fallos por fuente.
-
-`src/agent/preselectJobs.ts`
-
-Preselector barato y amplio. No decide compatibilidad final; solo evita gastar IA en ofertas claramente fuera del area.
-
-`src/config.ts`
-
-Contiene configuracion, filtros, palabras clave y variables de entorno.
-
-`src/sources/`
-
-Contiene los conectores a cada fuente de empleo.
-
-`src/services/email.ts`
-
-Envia el email usando SMTP.
-
-`src/services/digest.ts`
-
-Genera el resumen del correo en texto y HTML.
-
-`src/services/aiMatcher.ts`
-
-Evalua cada oferta con IA contra el CV y decide si conviene aplicarla, revisarla o descartarla.
-
-`src/services/cv.ts`
-
-Lee el CV virtual publico para usarlo como contexto de matching.
-
-`src/services/state.ts`
-
-Guarda ofertas ya enviadas en `data/seen-jobs.json` para no repetirlas.
-
-`.github/workflows/daily-jobs.yml`
-
-Workflow de GitHub Actions que ejecuta el bot cada 12 horas.
-
-## Configuracion Local
-
-Instala dependencias:
+## Instalación Local
 
 ```bash
 npm install
-```
-
-Crea tu archivo `.env` a partir del ejemplo:
-
-```bash
 cp .env.example .env
 ```
 
-Configura el `.env`:
+Configura `.env` con tus credenciales de correo, OpenAI, SerpApi y emails destino.
 
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER=tu-email@gmail.com
-SMTP_PASSWORD=app-password-de-gmail
-EMAIL_FROM=tu-email@gmail.com
-EMAIL_TO=destino@gmail.com
-OPENAI_API_KEY=
-SERPAPI_API_KEY=
-
-ENABLE_AI_MATCHING=true
-OPENAI_MODEL=gpt-5-mini
-CV_URL=https://oswaldo-virtual-cv.vercel.app/es
-AI_MAX_CANDIDATES=20
-AI_MIN_COMPATIBILITY_SCORE=80
-ENABLE_SERPAPI=false
-SERPAPI_LOCATION=Miami, Florida, United States
-SERPAPI_GL=us
-SERPAPI_HL=es
-SERPAPI_MONTHLY_LIMIT=220
-SERPAPI_RUN_EVERY_HOURS=12
-SERPAPI_MAX_QUERIES_PER_RUN=1
-SERPAPI_QUERIES=
-LOOKBACK_DAYS=60
-MAX_JOBS_PER_EMAIL=20
-SEND_EMPTY_DIGEST=true
-EXTRA_RSS_FEEDS=
-```
-
-`SMTP_PASSWORD` debe ser una App Password de Gmail, no la contrasena normal de la cuenta.
-
-`OPENAI_API_KEY` es necesaria solo si activas `ENABLE_AI_MATCHING=true`.
-
-`SERPAPI_API_KEY` es necesaria solo si activas `ENABLE_SERPAPI=true`.
-
-Para cuidar el plan gratis de SerpApi, el agente tiene un limite interno:
-
-```txt
-SERPAPI_MONTHLY_LIMIT=220
-SERPAPI_RUN_EVERY_HOURS=12
-SERPAPI_MAX_QUERIES_PER_RUN=1
-```
-
-Con esos valores, GitHub Actions corre cada 12 horas y cada perfil usa como maximo 1 busqueda de SerpApi por corrida. Con tres perfiles activos, eso consume aproximadamente 180 busquedas al mes.
-
-`SERPAPI_QUERIES` permite definir busquedas separadas por `|`. Ejemplo:
-
-```txt
-Senior React Native remote LATAM contractor|Senior React frontend remote Europe B2|React Native remoto Espana freelance
-```
-
-## Ejecucion Manual
-
-Para probar sin enviar correo:
-
-```bash
-DRY_RUN=true SEND_EMPTY_DIGEST=true npm run dev
-```
-
-Esto muestra en consola:
-
-```txt
-Resumen de busqueda:
-- Remotive: X ofertas recibidas
-- RemoteOK: X ofertas recibidas
-- Jobicy: X ofertas recibidas
-- Get on Board: X ofertas recibidas
-- Arbeitnow: X ofertas recibidas
-- RSS feeds: X ofertas recibidas
-- Google Jobs / LinkedIn / Job boards: X ofertas recibidas
-- Total recibido: X
-- Recientes: X
-- Candidatas para IA: X
-- Nuevas no enviadas antes: X
-- Evaluadas por IA: X
-- Seleccionadas para email: X
-```
-
-Para ejecutar enviando correo real:
+Ejecutar en local:
 
 ```bash
 npm run dev
 ```
 
-Para compilar:
+Ejecutar forzando búsqueda SerpApi para los tres perfiles:
 
 ```bash
-npm run build
+SERPAPI_RUN_EVERY_HOURS=0 MOM_SERPAPI_RUN_EVERY_HOURS=0 SISTER_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
 ```
 
-Para ejecutar compilado:
+Reenviar desde cero en local:
 
 ```bash
-npm start
+rm -f data/seen-jobs-oswaldo-react.json data/seen-jobs-mom-nursing-caracas.json data/seen-jobs-sister-bakery-caracas.json
+SERPAPI_RUN_EVERY_HOURS=0 MOM_SERPAPI_RUN_EVERY_HOURS=0 SISTER_SERPAPI_RUN_EVERY_HOURS=0 npm run dev
 ```
 
-## Automatizacion Con GitHub Actions
+## GitHub Actions
 
-El workflow corre cada 12 horas usando este cron:
+El workflow está en:
 
 ```txt
-0 0,12 * * *
+.github/workflows/daily-jobs.yml
 ```
 
-GitHub Actions usa UTC. Venezuela usa UTC-4, asi que el bot se ejecuta aproximadamente a las 8:00 a.m. y 8:00 p.m. hora Venezuela.
+Corre cada 12 horas:
 
-## Secrets Necesarios En GitHub
+```txt
+8:00 AM Venezuela
+8:00 PM Venezuela
+```
 
-En GitHub debes crear estos repository secrets:
+También puede ejecutarse manualmente desde:
+
+```txt
+Actions -> Job alert every 12 hours -> Run workflow
+```
+
+## Secrets Principales
+
+Configurar en:
+
+```txt
+Settings -> Secrets and variables -> Actions -> Secrets
+```
+
+Secrets:
 
 ```txt
 SMTP_HOST
@@ -327,188 +102,65 @@ SMTP_PASSWORD
 EMAIL_FROM
 EMAIL_TO
 OPENAI_API_KEY
+SERPAPI_API_KEY
 MOM_EMAIL_TO
 MOM_CV_TEXT
 SISTER_EMAIL_TO
 SISTER_CV_TEXT
 ```
 
-Valores tipicos para Gmail:
+## Variables Principales
+
+Configurar en:
 
 ```txt
-SMTP_HOST = smtp.gmail.com
-SMTP_PORT = 465
-SMTP_SECURE = true
-SMTP_USER = tu-email@gmail.com
-SMTP_PASSWORD = app-password-de-gmail
-EMAIL_FROM = tu-email@gmail.com
-EMAIL_TO = destino@gmail.com
-OPENAI_API_KEY = sk-...
-MOM_EMAIL_TO = correo-de-tu-mama@gmail.com
-MOM_CV_TEXT = Yuly Maribel Delgado Rodriguez. Licenciada en Enfermeria...
-SISTER_EMAIL_TO = correo-de-tu-hermana@gmail.com
-SISTER_CV_TEXT = Yuliana Alvarez. Ayudante de pasteleria y panaderia...
+Settings -> Secrets and variables -> Actions -> Variables
 ```
 
-Secret opcional para buscar tambien en Google Jobs, LinkedIn, Indeed y job boards de empresas via SerpApi:
+Variables habituales:
 
 ```txt
-SERPAPI_API_KEY
+ENABLE_AI_MATCHING=true
+OPENAI_MODEL=gpt-5-mini
+ENABLE_SERPAPI=true
+SERPAPI_RUN_EVERY_HOURS=12
+SERPAPI_MAX_QUERIES_PER_RUN=1
+SERPAPI_MONTHLY_LIMIT=220
+LOOKBACK_DAYS=60
+MAX_JOBS_PER_EMAIL=20
+SEND_EMPTY_DIGEST=true
+ENABLE_MOM_NURSING_PROFILE=true
+ENABLE_SISTER_BAKERY_PROFILE=true
+EXTRA_RSS_FEEDS=
 ```
 
-Variables opcionales en GitHub Actions:
+El resto de variables específicas por perfil están documentadas en `.env.example`.
 
-```txt
-LOOKBACK_DAYS
-MAX_JOBS_PER_EMAIL
-ENABLE_AI_MATCHING
-OPENAI_MODEL
-CV_URL
-AI_MAX_CANDIDATES
-AI_MIN_COMPATIBILITY_SCORE
-ENABLE_SERPAPI
-SERPAPI_LOCATION
-SERPAPI_GL
-SERPAPI_HL
-SERPAPI_MONTHLY_LIMIT
-SERPAPI_RUN_EVERY_HOURS
-SERPAPI_MAX_QUERIES_PER_RUN
-SERPAPI_QUERIES
-SEND_EMPTY_DIGEST
-EXTRA_RSS_FEEDS
-ENABLE_MOM_NURSING_PROFILE
-MOM_PROFILE_NAME
-MOM_SUBJECT_PREFIX
-MOM_LOCATION
-MOM_MIN_COMPATIBILITY_SCORE
-MOM_LOOKBACK_DAYS
-MOM_MAX_JOBS_PER_EMAIL
-MOM_AI_MAX_CANDIDATES
-MOM_SERPAPI_RUN_EVERY_HOURS
-MOM_SERPAPI_MAX_QUERIES_PER_RUN
-MOM_SERPAPI_QUERIES
-ENABLE_SISTER_BAKERY_PROFILE
-SISTER_PROFILE_NAME
-SISTER_SUBJECT_PREFIX
-SISTER_LOCATION
-SISTER_MIN_COMPATIBILITY_SCORE
-SISTER_MAX_JOBS_PER_EMAIL
-SISTER_AI_MAX_CANDIDATES
-SISTER_SERPAPI_RUN_EVERY_HOURS
-SISTER_SERPAPI_MAX_QUERIES_PER_RUN
-SISTER_SERPAPI_QUERIES
-```
-
-Si no configuras estas variables opcionales, el workflow usa valores por defecto.
-
-### Cambios Para Tres Perfiles Cada 12 Horas
-
-Para activar el perfil de Yuliana solo hay que agregar sus `secrets` y variables. No conviene guardar correos personales ni CVs completos dentro del repo.
-
-Secrets agregados:
-
-```txt
-SISTER_EMAIL_TO
-SISTER_CV_TEXT
-```
-
-Variables agregadas:
-
-```txt
-ENABLE_SISTER_BAKERY_PROFILE
-SISTER_PROFILE_NAME
-SISTER_SUBJECT_PREFIX
-SISTER_LOCATION
-SISTER_MIN_COMPATIBILITY_SCORE
-SISTER_MAX_JOBS_PER_EMAIL
-SISTER_AI_MAX_CANDIDATES
-SISTER_SERPAPI_RUN_EVERY_HOURS
-SISTER_SERPAPI_MAX_QUERIES_PER_RUN
-SISTER_SERPAPI_QUERIES
-```
-
-Variables modificadas para correr cada 12 horas y cuidar la cuota de SerpApi:
-
-```txt
-SERPAPI_RUN_EVERY_HOURS
-SERPAPI_MAX_QUERIES_PER_RUN
-MOM_SERPAPI_RUN_EVERY_HOURS
-MOM_SERPAPI_MAX_QUERIES_PER_RUN
-```
-
-### Perfil Opcional: Enfermeria Caracas
-
-Si `ENABLE_MOM_NURSING_PROFILE=true`, el workflow ejecuta un segundo perfil para Yuly Delgado. Ese perfil busca en RSS extra y Google Jobs/LinkedIn/job boards via SerpApi cuando esta activo. No usa boards tech por defecto como Remotive/RemoteOK para evitar ruido. Usa IA laxa con filtros criticos: lee la oferta, verifica que sea de enfermeria/cuidado de pacientes en Caracas, descarta ventas/comercial, emergencias, areas criticas, ambulancia, paramedico, terapia intensiva/UCI y rangos de edad incompatibles con 59 anos. El correo mantiene `Por que matchea` y `Dudas/Riesgos`.
-
-Para Google Jobs, LinkedIn, Indeed y job boards agregados por Google, este perfil usa `SERPAPI_API_KEY`, por lo que `ENABLE_SERPAPI=true` debe estar activo.
-
-### Perfil Opcional: Pasteleria/Panaderia Caracas
-
-Si `ENABLE_SISTER_BAKERY_PROFILE=true`, el workflow ejecuta un tercer perfil para Yuliana Alvarez. Ese perfil busca en RSS extra y Google Jobs/LinkedIn/job boards via SerpApi cuando esta activo. No usa boards tech por defecto como Remotive/RemoteOK para evitar ruido. Filtra ofertas en Caracas relacionadas con panaderia, pasteleria, reposteria, bomboneria, chocolateria, merengues y decoracion de tortas. Usa IA laxa para explicar `Por que matchea` y `Dudas/Riesgos`, pero descarta cocina general, ayudante de cocina, cocina salada, restaurante general, ventas, caja, barista y cargos fuera de panaderia/pasteleria.
-
-## Como Configurar Secrets En GitHub
-
-Entra al repo:
-
-```txt
-https://github.com/oswaldoAlvarez/job-alert-bot
-```
-
-Luego ve a:
-
-```txt
-Settings -> Secrets and variables -> Actions -> Secrets -> New repository secret
-```
-
-Crea cada secret de la lista anterior, uno por uno.
-
-## Como Ejecutar En GitHub Manualmente
-
-Despues de subir el proyecto:
-
-```txt
-Actions -> Job alert every 12 hours -> Run workflow
-```
-
-Si el workflow corre bien, despues queda automatico cada 12 horas.
-
-## Tests Y Validacion
-
-Ejecutar tests:
+## Scripts
 
 ```bash
-npm test
+npm run dev      # Ejecuta en TypeScript
+npm run build    # Compila
+npm start        # Ejecuta compilado
+npm run check    # Valida TypeScript
+npm test         # Tests
 ```
 
-Validar TypeScript:
+## Estado Local
 
-```bash
-npm run check
-```
-
-Compilar:
-
-```bash
-npm run build
-```
-
-## Notas De Seguridad
-
-- No subas `.env` a GitHub.
-- No compartas `SMTP_PASSWORD`.
-- Usa App Password de Gmail.
-- Si usas un correo principal, el bot tendra permiso para enviar correos desde esa cuenta.
-- Una opcion mas segura es usar un Gmail dedicado solo para el bot.
-
-## Estado Persistente
-
-El bot guarda ofertas enviadas en:
+El bot guarda estado en `data/` para no reenviar ofertas repetidas:
 
 ```txt
-data/seen-jobs.json
 data/seen-jobs-oswaldo-react.json
 data/seen-jobs-mom-nursing-caracas.json
+data/seen-jobs-sister-bakery-caracas.json
 data/serpapi-usage.json
 ```
 
-Ese archivo evita reenviar las mismas ofertas. En GitHub Actions se conserva usando cache.
+Estos archivos no deben contener secretos.
+
+## Seguridad
+
+- No subir `.env` a GitHub.
+- No compartir `SMTP_PASSWORD`, `OPENAI_API_KEY` ni `SERPAPI_API_KEY`.
+- Para Gmail, usar App Password, no la contraseña normal.
