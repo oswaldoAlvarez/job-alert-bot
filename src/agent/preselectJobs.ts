@@ -24,11 +24,7 @@ const containsAny = (text: string, terms: string[]): string[] => {
   });
 };
 
-const candidateTechTerms = [
-  ...config.requiredTechTerms,
-  "next.js",
-  "nextjs"
-];
+const candidateTechTerms = config.requiredTechTerms;
 
 export const preselectJobCandidate = (job: JobPosting): MatchedJob | undefined => {
   const searchableText = normalizeText(
@@ -43,6 +39,9 @@ export const preselectJobCandidate = (job: JobPosting): MatchedJob | undefined =
 
   const excluded = containsAny(searchableText, config.exclusionTerms);
   if (excluded.length > 0) return undefined;
+
+  const blockedRegion = containsAny(searchableText, config.blockedRegionTerms);
+  if (blockedRegion.length > 0) return undefined;
 
   const techMatches = containsAny(searchableText, candidateTechTerms);
   if (techMatches.length === 0) return undefined;

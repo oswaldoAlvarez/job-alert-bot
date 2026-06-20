@@ -44,6 +44,27 @@ describe("preselectJobCandidate", () => {
     expect(result).toBeDefined();
   });
 
+  it("preselecciona ofertas con Next.js si parecen del stack objetivo", () => {
+    const result = preselectJobCandidate({
+      ...baseJob,
+      title: "Senior Frontend Engineer React y Next.js",
+      description: "React, Next.js y TypeScript. Remoto LATAM en espanol."
+    });
+
+    expect(result).toBeDefined();
+  });
+
+  it("rechaza ofertas de Brasil o portugues antes de gastar IA", () => {
+    const result = preselectJobCandidate({
+      ...baseJob,
+      title: "Senior React Developer",
+      location: "Remote Brazil",
+      description: "React remoto para Brasil. Portuguese speaking required."
+    });
+
+    expect(result).toBeUndefined();
+  });
+
   it("deja pasar ofertas de Europa aunque falte detalle de idioma para que la IA decida", () => {
     const result = preselectJobCandidate({
       ...baseJob,
@@ -191,5 +212,24 @@ describe("shouldSendAiMatchedJob", () => {
     } as MatchedJob);
 
     expect(shouldSend).toBe(false);
+  });
+
+  it("acepta fullstack frontend con backend medio y score 80", () => {
+    const shouldSend = shouldSendAiMatchedJob({
+      ...baseJob,
+      score: 80,
+      reasons: ["Senales tecnicas: react"],
+      aiEvaluation: {
+        ...goodEvaluation,
+        compatibilityScore: 80,
+        summary: "Fullstack frontend con React, Next.js y algo de Node secundario.",
+        matchReasons: ["React fuerte", "Backend secundario"],
+        frontendFit: "medio",
+        backendWeight: "medio",
+        roleFocus: "fullstack_frontend"
+      }
+    } as MatchedJob);
+
+    expect(shouldSend).toBe(true);
   });
 });

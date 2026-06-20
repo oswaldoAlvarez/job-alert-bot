@@ -142,14 +142,17 @@ const buildPrompt = (job: MatchedJob, cvText: string): string => {
     "PREFERENCIAS DE BUSQUEDA:",
     [
       "- Roles objetivo: SSR/SR React Native, React, Frontend, Mobile, Frontend Engineer.",
-      "- Perfil principal: frontend/mobile. No asumir experiencia backend fuerte.",
+      "- Perfil principal: frontend/mobile con React, React Native, Next.js y TypeScript.",
+      "- No asumir experiencia backend fuerte. Node.js o Python basico/secundario puede aceptarse si el foco de la vacante sigue siendo frontend/mobile.",
       "- Aceptar fullstack solo si el trabajo real es mayormente frontend y usa React, React Native o Next.js.",
-      "- Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, Python, .NET, PHP, Ruby, Go, backend Node o arquitectura backend.",
-      "- La oferta debe ser full remota. Puede ser mundial o restringida por region amplia, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
-      "- Priorizar ofertas en espanol. Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
+      "- Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, .NET, PHP, Ruby, Go, data engineering o arquitectura backend.",
+      "- La oferta debe ser full remota. Puede ser mundial, LATAM, Hispanoamerica, Espana o Europa, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
+      "- Priorizar LATAM, Hispanoamerica y Espana. Europa solo sirve si la oferta esta en espanol o indica equipo/mercado hispanohablante.",
+      "- Descartar ofertas de Brasil o que pidan portugues.",
+      "- Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
       "- Verificar si el ingles es requerido. Si requiere C1, C2, advanced, fluent, native o similar, descartar. Si no pide ingles o pide maximo B1/B2/intermedio, puede pasar.",
       "- Extraer rango salarial si aparece en titulo, descripcion, tags o metadata. Si no aparece, usar No indicado.",
-      "- Solo recomendar aplicar si la compatibilidad real es 90 o mas y puedes explicar por que es buen fit para postular."
+      "- Solo recomendar aplicar si la compatibilidad real es 80 o mas y puedes explicar por que es buen fit para postular."
     ].join("\n"),
     "",
     "CV DEL CANDIDATO:",
@@ -255,15 +258,18 @@ export const evaluateJobWithAi = async (job: MatchedJob, cvText: string): Promis
           content: [
             "Eres un agente de matching laboral para Oswaldo Alvarez.",
             "Tu tarea es leer la oferta, compararla contra su CV y preferencias, y decidir si vale la pena enviarla.",
-            "Perfil fuerte: Frontend/Mobile con React, React Native, TypeScript, fintech, crypto, healthcare y ownership de producto.",
-            "Solo deben enviarse ofertas con foco frontend/mobile fuerte.",
-            "Fullstack solo sirve si es fullstack frontend con React, React Native o Next.js; backend dominante se descarta.",
+            "Perfil fuerte: Frontend/Mobile con React, React Native, Next.js, TypeScript, fintech, crypto, healthcare y ownership de producto.",
+            "Solo deben enviarse ofertas con foco frontend/mobile o fullstack frontend.",
+            "Node.js o Python basico pueden ser aceptables si son secundarios; backend dominante se descarta.",
+            "Fullstack solo sirve si es fullstack frontend con React, React Native o Next.js.",
             "La oferta debe ser full remota y no exigir vivir en un pais especifico.",
+            "Prioriza LATAM, Hispanoamerica y Espana; Europa sirve si esta en espanol o tiene equipo/mercado hispanohablante.",
+            "Descarta Brasil, portugues, hibrido, onsite y pais especifico obligatorio.",
             "La oferta debe estar en espanol o tener senal clara de equipo/mercado hispanohablante.",
             "Debes verificar ingles requerido: none/not_specified/b1/b2 son aceptables; c1/c2/advanced/fluent/native se descartan.",
             "Extrae salaryRange si la oferta muestra salario, rango, hourly rate o moneda. Si no aparece, usa No indicado.",
             "Si no puedes verificar un requisito critico, no marques aplicar.",
-            "Se estricto: recommendation aplicar solo si compatibilityScore >= 90 y realmente conviene postular."
+            "Se criterioso: recommendation aplicar solo si compatibilityScore >= 80 y realmente conviene postular."
           ].join(" ")
         },
         {
@@ -314,11 +320,12 @@ export const shouldSendAiMatchedJob = (job: MatchedJob): boolean => {
   const acceptedRemote = ["worldwide", "region_restricted"].includes(evaluation.remoteScope);
   const acceptedRole = ["frontend", "mobile", "fullstack_frontend"].includes(evaluation.roleFocus);
   const acceptedSpanish = ["spanish_offer", "spanish_speaking_team"].includes(evaluation.spanishFit);
+  const acceptedFrontendFit = evaluation.frontendFit === "alto" || evaluation.roleFocus === "fullstack_frontend";
 
   return (
     evaluation.recommendation === "aplicar" &&
     evaluation.compatibilityScore >= config.aiMinCompatibilityScore &&
-    evaluation.frontendFit === "alto" &&
+    acceptedFrontendFit &&
     evaluation.backendWeight !== "alto" &&
     acceptedEnglish &&
     acceptedRemote &&

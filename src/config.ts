@@ -19,7 +19,7 @@ export const config = {
   lookbackDays: numberFromEnv("LOOKBACK_DAYS", 7),
   maxJobsPerEmail: numberFromEnv("MAX_JOBS_PER_EMAIL", 20),
   aiMaxCandidates: numberFromEnv("AI_MAX_CANDIDATES", 30),
-  aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 90),
+  aiMinCompatibilityScore: numberFromEnv("AI_MIN_COMPATIBILITY_SCORE", 80),
   enableAiMatching: booleanFromEnv("ENABLE_AI_MATCHING", Boolean(process.env.OPENAI_API_KEY)),
   openAiApiKey: process.env.OPENAI_API_KEY,
   openAiModel: process.env.OPENAI_MODEL ?? "gpt-5-mini",
@@ -61,6 +61,8 @@ export const config = {
     "react.js",
     "reactjs",
     "react native",
+    "next.js",
+    "nextjs",
     "frontend",
     "front-end"
   ],
@@ -82,6 +84,21 @@ export const config = {
     "practicas",
     "prácticas",
     "becario"
+  ],
+  blockedRegionTerms: [
+    "brasil",
+    "brazil",
+    "brazilian",
+    "portuguese",
+    "portugues",
+    "portugués",
+    "portuguese speaker",
+    "portuguese speaking",
+    "remote brazil",
+    "remoto brasil",
+    "sao paulo",
+    "são paulo",
+    "rio de janeiro"
   ],
   spanishSignals: [
     "español",

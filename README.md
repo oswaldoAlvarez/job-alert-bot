@@ -30,7 +30,7 @@ El agente busca ofertas que tengan senales de:
 
 - Tecnologia: React, React Native, React.js, ReactJS, Frontend o Front-end.
 - Seniority objetivo: SSR, Semi Senior, Senior o SR.
-- Perfil principal: mas frontend/mobile que backend.
+- Perfil principal: mas frontend/mobile que backend, con React, React Native, Next.js y TypeScript.
 - Fullstack solo si el foco real sigue siendo frontend con React, React Native o Next.js.
 - Modalidad: full remote, sin exigir vivir en un pais especifico. Puede ser mundial o por region amplia.
 - Idioma: oferta en espanol o con senal clara de equipo/mercado hispanohablante.
@@ -66,7 +66,7 @@ Cuando `ENABLE_AI_MATCHING=true`, cada oferta preseleccionada se evalua con esto
 - Rango salarial, si aparece en la oferta.
 - Compatibilidad con remoto, LATAM o Europa.
 
-La IA descarta del email las ofertas que no sean recomendacion `aplicar`, tengan score menor a `AI_MIN_COMPATIBILITY_SCORE`, no tengan fit frontend alto, tengan backend alto, pidan ingles mayor a B2, exijan vivir en un pais especifico o no tengan senal de espanol.
+La IA descarta del email las ofertas que no sean recomendacion `aplicar`, tengan score menor a `AI_MIN_COMPATIBILITY_SCORE`, tengan backend alto, pidan ingles mayor a B2, exijan vivir en un pais especifico, no sean full remotas, sean de Brasil/portugues o no tengan senal de espanol/mercado hispanohablante.
 
 Esto no es RAG con vector database. El CV virtual es pequeno y publico, asi que el agente lo lee completo en cada ejecucion y lo mete como contexto directo del modelo. Si luego agregas varios CVs, portfolio largo, cartas, historial de postulaciones o preferencias extensas, ahi si tendria sentido convertirlo en RAG.
 
@@ -222,7 +222,7 @@ ENABLE_AI_MATCHING=true
 OPENAI_MODEL=gpt-5-mini
 CV_URL=https://oswaldo-virtual-cv.vercel.app/es
 AI_MAX_CANDIDATES=20
-AI_MIN_COMPATIBILITY_SCORE=90
+AI_MIN_COMPATIBILITY_SCORE=80
 ENABLE_SERPAPI=false
 SERPAPI_LOCATION=Miami, Florida, United States
 SERPAPI_GL=us

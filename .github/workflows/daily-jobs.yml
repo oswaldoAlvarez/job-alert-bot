@@ -50,7 +50,7 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           CV_URL: ${{ vars.CV_URL || 'https://oswaldo-virtual-cv.vercel.app/es' }}
           AI_MAX_CANDIDATES: ${{ vars.AI_MAX_CANDIDATES || '20' }}
-          AI_MIN_COMPATIBILITY_SCORE: ${{ vars.AI_MIN_COMPATIBILITY_SCORE || '90' }}
+          AI_MIN_COMPATIBILITY_SCORE: ${{ vars.AI_MIN_COMPATIBILITY_SCORE || '80' }}
           ENABLE_SERPAPI: ${{ vars.ENABLE_SERPAPI || 'false' }}
           SERPAPI_LOCATION: ${{ vars.SERPAPI_LOCATION || 'Miami, Florida, United States' }}
           SERPAPI_GL: ${{ vars.SERPAPI_GL || 'us' }}
