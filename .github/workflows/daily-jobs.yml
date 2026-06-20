@@ -61,5 +61,5 @@ jobs:
           SERPAPI_QUERIES: ${{ vars.SERPAPI_QUERIES || '' }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '7' }}
           MAX_JOBS_PER_EMAIL: ${{ vars.MAX_JOBS_PER_EMAIL || '20' }}
-          SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'false' }}
+          SEND_EMPTY_DIGEST: ${{ vars.SEND_EMPTY_DIGEST || 'true' }}
           EXTRA_RSS_FEEDS: ${{ vars.EXTRA_RSS_FEEDS || '' }}

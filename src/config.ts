@@ -36,7 +36,7 @@ export const config = {
     .split("|")
     .map((query) => query.trim())
     .filter(Boolean),
-  sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", false),
+  sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", true),
   dryRun: booleanFromEnv("DRY_RUN", false),
   extraRssFeeds: (process.env.EXTRA_RSS_FEEDS ?? "")
     .split(",")
