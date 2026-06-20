@@ -333,3 +333,11 @@ describe("extractVisiblePageDate", () => {
     expect(date?.toISOString().slice(0, 10)).toBe("2026-02-18");
   });
 });
+
+describe("momNursingProfile", () => {
+  it("esta configurado como fuente directa sin IA", () => {
+    expect(momNursingProfile.id).toBe("mom-nursing-caracas");
+    expect(momNursingProfile.sourceMode).toBe("serpapi_only");
+    expect(momNursingProfile.maxJobsPerEmail).toBeGreaterThan(0);
+  });
+});

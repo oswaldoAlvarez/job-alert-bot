@@ -25,8 +25,51 @@ const resolveCvText = async (profile: JobProfile): Promise<string> => {
   throw new Error(`El perfil ${profile.name} requiere cvText o cvUrl para usar IA`);
 };
 
+const shouldSendRawSourceJobs = (profile: JobProfile): boolean => profile.id === "mom-nursing-caracas";
+
 const runProfileJobAgent = async (profile: JobProfile): Promise<void> => {
   const { jobs: allJobs, stats } = await fetchAllJobs(profile);
+  if (shouldSendRawSourceJobs(profile)) {
+    const sourceJobs = rankJobs(
+      dedupeJobs(allJobs).map((job) => ({
+        ...job,
+        score: 1,
+        reasons: ["Oferta recibida desde Google Jobs/SerpApi para busqueda de enfermeria en Caracas"]
+      }))
+    );
+    const unseenSourceJobs = await keepUnseenJobs(sourceJobs, profile.id);
+    const digestJobs = unseenSourceJobs.slice(0, profile.maxJobsPerEmail);
+
+    console.log(`Resumen de busqueda (${profile.name}):`);
+    for (const stat of stats) {
+      console.log(`- ${stat}`);
+    }
+    console.log(`- Total recibido: ${allJobs.length}`);
+    console.log(`- Ofertas deduplicadas: ${sourceJobs.length}`);
+    console.log(`- Nuevas no enviadas antes: ${unseenSourceJobs.length}`);
+    console.log(`- Seleccionadas para email: ${digestJobs.length}`);
+
+    if (digestJobs.length === 0 && !config.sendEmptyDigest) {
+      console.log(`No hay ofertas nuevas para enviar (${profile.name}).`);
+      return;
+    }
+
+    const date = new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(new Date());
+    await sendEmail({
+      subject: `${profile.subjectPrefix} - ${date}`,
+      text: renderTextDigest(digestJobs, profile),
+      html: renderHtmlDigest(digestJobs, profile),
+      to: profile.emailTo
+    });
+
+    if (!config.dryRun) {
+      await markJobsAsSeen(digestJobs, profile.id);
+    }
+
+    console.log(`Proceso finalizado (${profile.name}). Ofertas enviadas: ${digestJobs.length}`);
+    return;
+  }
+
   const recentJobs = allJobs.filter((job) => isRecent(job.publishedAt, profile.lookbackDays));
   const candidateJobs = preselectJobCandidates(dedupeJobs(recentJobs), profile);
   const { jobs: freshCandidateJobs, staleCount } = await filterFreshJobsByLandingPage(candidateJobs, profile);
