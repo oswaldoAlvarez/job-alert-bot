@@ -37,7 +37,7 @@ export const config = {
   serpApiCountry: process.env.SERPAPI_GL ?? "us",
   serpApiLanguage: process.env.SERPAPI_HL ?? "es",
   serpApiMonthlyLimit: numberFromEnv("SERPAPI_MONTHLY_LIMIT", 220),
-  serpApiRunEveryHours: numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12),
+  serpApiRunEveryHours: numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 24),
   serpApiMaxQueriesPerRun: numberFromEnv("SERPAPI_MAX_QUERIES_PER_RUN", 1),
   serpApiQueries: listFromEnv("SERPAPI_QUERIES", "|"),
   sendEmptyDigest: booleanFromEnv("SEND_EMPTY_DIGEST", true),
@@ -323,7 +323,7 @@ export const config = {
     maxJobsPerEmail: numberFromEnv("NURSING_MAX_JOBS_PER_EMAIL", 20),
     aiMaxCandidates: numberFromEnv("NURSING_AI_MAX_CANDIDATES", 20),
     serpApiQueries: listFromEnv("NURSING_SERPAPI_QUERIES", "|"),
-    serpApiRunEveryHours: numberFromEnv("NURSING_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiRunEveryHours: numberFromEnv("NURSING_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 24)),
     serpApiMaxQueriesPerRun: numberFromEnv("NURSING_SERPAPI_MAX_QUERIES_PER_RUN", 1)
   },
   bakery: {
@@ -338,7 +338,7 @@ export const config = {
     maxJobsPerEmail: numberFromEnv("BAKERY_MAX_JOBS_PER_EMAIL", 20),
     aiMaxCandidates: numberFromEnv("BAKERY_AI_MAX_CANDIDATES", 20),
     serpApiQueries: listFromEnv("BAKERY_SERPAPI_QUERIES", "|"),
-    serpApiRunEveryHours: numberFromEnv("BAKERY_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 12)),
+    serpApiRunEveryHours: numberFromEnv("BAKERY_SERPAPI_RUN_EVERY_HOURS", numberFromEnv("SERPAPI_RUN_EVERY_HOURS", 24)),
     serpApiMaxQueriesPerRun: numberFromEnv("BAKERY_SERPAPI_MAX_QUERIES_PER_RUN", 1)
   }
 };
