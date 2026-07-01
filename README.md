@@ -18,7 +18,7 @@ El objetivo es recibir oportunidades relevantes para varios perfiles sin revisar
 
 El proyecto contiene tres perfiles:
 
-- `React Frontend Profile`: React, React Native, Next.js, frontend/mobile, remoto, LATAM/Europa, español o mercado hispanohablante.
+- `React Frontend Profile`: React, React Native, Next.js, frontend/mobile, remoto, LATAM/Europa, sin exigir idioma español.
 - `Nursing Caracas Profile`: enfermería, cuidado de pacientes, enfermería domiciliaria y roles asistenciales en Caracas.
 - `Bakery Caracas Profile`: panadería, pastelería, repostería, bombonería, decoración de tortas y roles afines en Caracas.
 
