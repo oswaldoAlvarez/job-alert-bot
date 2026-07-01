@@ -1,8 +1,8 @@
-name: Job alert every 12 hours
+name: Job alert daily at noon
 
 on:
   schedule:
-    - cron: "0 0,12 * * *"
+    - cron: "17 16 * * *"
   workflow_dispatch:
 
 jobs:
@@ -60,7 +60,7 @@ jobs:
           SERPAPI_GL: ${{ vars.SERPAPI_GL || 'us' }}
           SERPAPI_HL: ${{ vars.SERPAPI_HL || 'es' }}
           SERPAPI_MONTHLY_LIMIT: ${{ vars.SERPAPI_MONTHLY_LIMIT || '220' }}
-          SERPAPI_RUN_EVERY_HOURS: ${{ vars.SERPAPI_RUN_EVERY_HOURS || '12' }}
+          SERPAPI_RUN_EVERY_HOURS: ${{ vars.SERPAPI_RUN_EVERY_HOURS || '24' }}
           SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
           SERPAPI_QUERIES: ${{ vars.SERPAPI_QUERIES || '' }}
           LOOKBACK_DAYS: ${{ vars.LOOKBACK_DAYS || '60' }}
@@ -75,7 +75,7 @@ jobs:
           NURSING_LOOKBACK_DAYS: ${{ vars.NURSING_LOOKBACK_DAYS || '7' }}
           NURSING_MAX_JOBS_PER_EMAIL: ${{ vars.NURSING_MAX_JOBS_PER_EMAIL || '20' }}
           NURSING_AI_MAX_CANDIDATES: ${{ vars.NURSING_AI_MAX_CANDIDATES || '20' }}
-          NURSING_SERPAPI_RUN_EVERY_HOURS: ${{ vars.NURSING_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          NURSING_SERPAPI_RUN_EVERY_HOURS: ${{ vars.NURSING_SERPAPI_RUN_EVERY_HOURS || '24' }}
           NURSING_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.NURSING_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
           NURSING_SERPAPI_QUERIES: ${{ vars.NURSING_SERPAPI_QUERIES || '' }}
           ENABLE_BAKERY_PROFILE: ${{ vars.ENABLE_BAKERY_PROFILE || 'false' }}
@@ -85,6 +85,6 @@ jobs:
           BAKERY_MIN_COMPATIBILITY_SCORE: ${{ vars.BAKERY_MIN_COMPATIBILITY_SCORE || '0' }}
           BAKERY_MAX_JOBS_PER_EMAIL: ${{ vars.BAKERY_MAX_JOBS_PER_EMAIL || '20' }}
           BAKERY_AI_MAX_CANDIDATES: ${{ vars.BAKERY_AI_MAX_CANDIDATES || '20' }}
-          BAKERY_SERPAPI_RUN_EVERY_HOURS: ${{ vars.BAKERY_SERPAPI_RUN_EVERY_HOURS || '12' }}
+          BAKERY_SERPAPI_RUN_EVERY_HOURS: ${{ vars.BAKERY_SERPAPI_RUN_EVERY_HOURS || '24' }}
           BAKERY_SERPAPI_MAX_QUERIES_PER_RUN: ${{ vars.BAKERY_SERPAPI_MAX_QUERIES_PER_RUN || '1' }}
           BAKERY_SERPAPI_QUERIES: ${{ vars.BAKERY_SERPAPI_QUERIES || '' }}
