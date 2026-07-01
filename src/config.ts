@@ -370,9 +370,9 @@ export const oswaldoProfile: JobProfile = {
     "Aceptar fullstack solo si el trabajo real es mayormente frontend y usa React, React Native o Next.js.",
     "Descartar fullstack si el foco real es backend, APIs, microservicios, DevOps, Java, .NET, PHP, Ruby, Go, data engineering o arquitectura backend.",
     "La oferta debe ser full remota. Puede ser mundial, LATAM, Hispanoamerica, Espana o Europa, pero descartar si exige vivir en un pais especifico, hibrido u onsite.",
-    "Priorizar LATAM, Hispanoamerica y Espana. Europa solo sirve si la oferta esta en espanol o indica equipo/mercado hispanohablante.",
+    "Priorizar LATAM, Hispanoamerica y Espana, pero no descartar una oferta solo por estar en ingles si el rol y las condiciones encajan.",
     "Descartar ofertas de Brasil o que pidan portugues.",
-    "Para enviar, debe estar en espanol o indicar equipo/mercado hispanohablante.",
+    "No exigir que la oferta este en espanol ni que indique equipo/mercado hispanohablante.",
     "Verificar si el ingles es requerido. Si requiere C1, C2, advanced, fluent, native o similar, descartar. Si no pide ingles o pide maximo B1/B2/intermedio, puede pasar.",
     "Extraer rango salarial si aparece en titulo, descripcion, tags o metadata. Si no aparece, usar No indicado."
   ],
@@ -380,10 +380,10 @@ export const oswaldoProfile: JobProfile = {
     acceptedRoles: ["frontend", "mobile", "fullstack_frontend"],
     acceptedRemoteScopes: ["worldwide", "region_restricted"],
     acceptedEnglishRequirements: ["none", "not_specified", "b1", "b2"],
-    acceptedSpanishFits: ["spanish_offer", "spanish_speaking_team"],
+    acceptedSpanishFits: ["spanish_offer", "spanish_speaking_team", "not_specified", "no"],
     allowMediumFrontendForFullstack: true,
     rejectHighBackend: true,
-    requireSpanishSignal: true
+    requireSpanishSignal: false
   }
 };
 
