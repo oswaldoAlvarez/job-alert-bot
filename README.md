@@ -70,17 +70,16 @@ El workflow está en:
 .github/workflows/daily-jobs.yml
 ```
 
-Corre cada 12 horas:
+Corre una vez al día:
 
 ```txt
-8:00 AM Venezuela
-8:00 PM Venezuela
+12:17 PM Venezuela
 ```
 
 También puede ejecutarse manualmente desde:
 
 ```txt
-Actions -> Job alert every 12 hours -> Run workflow
+Actions -> Job alert daily at noon -> Run workflow
 ```
 
 ## Secrets Principales
@@ -123,7 +122,7 @@ Variables habituales:
 ENABLE_AI_MATCHING=true
 OPENAI_MODEL=gpt-5-mini
 ENABLE_SERPAPI=true
-SERPAPI_RUN_EVERY_HOURS=12
+SERPAPI_RUN_EVERY_HOURS=24
 SERPAPI_MAX_QUERIES_PER_RUN=1
 SERPAPI_MONTHLY_LIMIT=220
 LOOKBACK_DAYS=60
